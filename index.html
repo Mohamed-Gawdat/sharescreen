@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Online Screen Share</title>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f9; padding: 30px; }
+    h1 { color: #333; }
+    input, button {
+      padding: 10px; margin: 10px;
+      border-radius: 8px; border: 1px solid #ccc; font-size: 16px;
+    }
+    button { background: #4CAF50; color: white; cursor: pointer; }
+    button:hover { background: #45a049; }
+    #video {
+      margin-top: 20px; width: 80%; max-width: 800px;
+      border: 2px solid #333; border-radius: 10px;
+    }
+    .info-box {
+      margin: 20px auto; padding: 15px;
+      background: #fff; border: 1px solid #ddd;
+      border-radius: 10px; max-width: 600px;
+    }
+  </style>
+</head>
+<body>
+  <h1>📺 Online Screen Share</h1>
+
+  <div class="info-box">
+    <p><strong>Your ID:</strong> <span id="myId">Loading...</span></p>
+    <p>
+      👉 <b>Sharer:</b> Send your ID to your friend, enter their ID, then click <b>Start Sharing</b>.<br>
+      👉 <b>Viewer:</b> Paste your friend's ID below and click <b>Connect</b>.
+    </p>
+  </div>
+
+  <div>
+    <input id="peerIdInput" placeholder="Enter friend's ID">
+    <button id="connectBtn">Connect as Viewer</button>
+    <button id="shareBtn">Start Sharing</button>
+  </div>
+
+  <video id="video" autoplay playsinline></video>
+
+  <script>
+    const video = document.getElementById('video');
+    const myIdEl = document.getElementById('myId');
+    let myStream = null;
+
+    // Create Peer instance
+    const peer = new Peer();
+
+    peer.on('open', id => {
+      myIdEl.textContent = id; // Show your unique ID
+    });
+
+    // Handle incoming call (Viewer receives stream here)
+    peer.on('call', call => {
+      call.answer(); // Viewer answers with no stream
+      call.on('stream', stream => {
+        video.srcObject = stream;
+      });
+    });
+
+    // Viewer connects (just to establish link, waits for Sharer)
+    document.getElementById('connectBtn').onclick = () => {
+      const peerId = document.getElementById('peerIdInput').value;
+      if (!peerId) {
+        alert("Enter a friend's ID first!");
+        return;
+      }
+      peer.connect(peerId);
+      alert("Connected! Waiting for your friend to share the screen...");
+    };
+
+    // Sharer starts screen share
+    document.getElementById('shareBtn').onclick = async () => {
+      try {
+        const peerId = document.getElementById('peerIdInput').value;
+        if (!peerId) {
+          alert("Enter your friend's ID first!");
+          return;
+        }
+
+        myStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+        const call = peer.call(peerId, myStream);
+
+        // Sharer can also see their own screen locally
+        video.srcObject = myStream;
+
+        call.on('error', err => {
+          console.error("Call error:", err);
+          alert("Failed to connect: " + err);
+        });
+
+      } catch (err) {
+        console.error("Error: ", err);
+        alert("Screen share failed: " + err);
+      }
+    };
+  </script>
+</body>
+</html>

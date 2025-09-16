@@ -965,7 +965,7 @@
         <div class="info-section">
           <div class="id-display">
             <div class="id-label">Your Connection ID</div>
-            <div class="id-value loading" id="myId">Initializing...</div>
+            <div class="id-value loading" id="myId">Generating ID...</div>
             <button class="copy-btn" id="copyBtn" onclick="copyId()">📋 Copy ID</button>
           </div>
           <div class="status-indicator status-connecting" id="status">
@@ -979,8 +979,11 @@
             <input 
               id="peerIdInput" 
               class="input-field" 
-              placeholder="Enter friend's connection ID"
+              placeholder="Enter 5-digit friend's ID (e.g., 12345)"
               autocomplete="off"
+              maxlength="5"
+              pattern="[0-9]*"
+              inputmode="numeric"
             >
           </div>
           
@@ -993,7 +996,6 @@
             </button>
           </div>
           
-
           
           <button id="disconnectBtn" class="btn btn-danger" style="display: none;">
             ❌ Disconnect
@@ -1017,7 +1019,40 @@
         <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="50">
         <span class="volume-level" id="volumeLevel">50%</span>
       </div>
+
+      <!-- Mobile Video Controls -->
+      <div class="mobile-video-controls" style="display: none;" id="mobileControls">
+        <button class="rotate-btn" id="horizontalBtn" onclick="toggleHorizontalView()">
+          📱 Horizontal View
+        </button>
+        <button class="rotate-btn" id="portraitFullBtn" onclick="togglePortraitFull()">
+          📺 Full Screen
+        </button>
+      </div>
     </div>
+  </div>
+
+  <!-- Horizontal Viewer Mode -->
+  <div class="horizontal-viewer" id="horizontalViewer" style="display: none;">
+    <div class="horizontal-header">
+      <div class="horizontal-title">📺 ShareScreen Pro - Horizontal View</div>
+      <button class="horizontal-close" onclick="exitHorizontalView()">✕ Exit</button>
+    </div>
+    <div class="horizontal-video-container">
+      <video id="horizontalVideo" autoplay playsinline></video>
+      <div class="horizontal-controls" id="horizontalControls">
+        <button class="volume-btn" id="horizontalMuteBtn" onclick="toggleHorizontalMute()">🔊</button>
+        <input type="range" id="horizontalVolumeSlider" class="volume-slider" min="0" max="100" value="50">
+        <button class="volume-btn" onclick="exitHorizontalView()">↩️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Orientation Hint -->
+  <div class="orientation-hint" id="orientationHint">
+    <div class="orientation-icon">📱</div>
+    <div class="orientation-text">For the best experience, please rotate your device to landscape mode</div>
+    <button class="skip-orientation" onclick="hideOrientationHint()">Continue Anyway</button>
   </div>
 
   <script>
@@ -1034,16 +1069,27 @@
     const volumeSlider = document.getElementById('volumeSlider');
     const volumeLevel = document.getElementById('volumeLevel');
     const muteBtn = document.getElementById('muteBtn');
+    const mobileControls = document.getElementById('mobileControls');
+    const horizontalViewer = document.getElementById('horizontalViewer');
+    const horizontalVideo = document.getElementById('horizontalVideo');
+    const horizontalVolumeSlider = document.getElementById('horizontalVolumeSlider');
+    const horizontalMuteBtn = document.getElementById('horizontalMuteBtn');
+    const orientationHint = document.getElementById('orientationHint');
     
     let peer = null;
     let myStream = null;
     let currentCall = null;
     let isConnected = false;
     let connection = null;
+    let isHorizontalMode = false;
+    let isPortraitFull = false;
 
     // Initialize peer connection with better configuration
     function initializePeer() {
-      peer = new Peer({
+      // Generate simple 5-digit numeric ID
+      const simpleId = Math.floor(10000 + Math.random() * 90000).toString();
+      
+      peer = new Peer(simpleId, {
         config: {
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
@@ -1058,10 +1104,21 @@
         myIdEl.textContent = id;
         updateStatus('connected', 'Ready to connect');
         myIdEl.classList.remove('loading');
+        
+        // Store ID in localStorage for persistence
+        localStorage.setItem('sharescreen_peer_id', id);
       });
 
       peer.on('error', err => {
         console.error('Peer error:', err);
+        
+        // If ID is taken, generate a new one
+        if (err.type === 'unavailable-id') {
+          console.log('ID taken, generating new one...');
+          initializePeer(); // Retry with new ID
+          return;
+        }
+        
         showToast('Connection error: ' + err.message, 'error');
         updateStatus('disconnected', 'Connection failed');
       });
@@ -1091,6 +1148,7 @@
             updateStatus('connected', 'Receiving stream');
             isConnected = true;
             toggleButtons(true);
+            showMobileControls();
             showToast('Stream connected successfully!', 'success');
           }).catch(e => {
             console.error('Video play failed:', e);
@@ -1330,9 +1388,12 @@
         
         // Listen for viewer ready signal
         connection.on('data', (data) => {
+          console.log('Received data:', data);
           if (data.type === 'viewer_ready') {
             viewerReady = true;
             console.log('Viewer confirmed ready');
+          } else if (data.type === 'keep_alive_response') {
+            console.log('Keep-alive response received');
           }
         });
 
@@ -1401,6 +1462,7 @@
         updateStatus('connected', 'Sharing screen');
         isConnected = true;
         toggleButtons(true);
+        showMobileControls();
         showToast('Screen sharing started successfully!', 'success');
 
         // Handle call events
@@ -1544,6 +1606,15 @@
       updateStatus('connected', 'Ready to connect');
       isConnected = false;
       toggleButtons(false);
+      hideMobileControls();
+      
+      // Exit any mobile viewing modes
+      if (isHorizontalMode) {
+        exitHorizontalView();
+      }
+      if (isPortraitFull) {
+        exitPortraitFull();
+      }
     }
 
     // Disconnect button handler
@@ -1663,6 +1734,244 @@
       }
     });
 
+    // Mobile-specific functions
+    function showMobileControls() {
+      if (window.innerWidth <= 768) {
+        mobileControls.style.display = 'flex';
+      }
+    }
+
+    function hideMobileControls() {
+      mobileControls.style.display = 'none';
+    }
+
+    // Horizontal view functions
+    function toggleHorizontalView() {
+      if (!isConnected) {
+        showToast('No active stream to view horizontally', 'error');
+        return;
+      }
+
+      if (!isHorizontalMode) {
+        enterHorizontalView();
+      } else {
+        exitHorizontalView();
+      }
+    }
+
+    function enterHorizontalView() {
+      isHorizontalMode = true;
+      horizontalViewer.style.display = 'flex';
+      
+      // Copy stream to horizontal video
+      horizontalVideo.srcObject = video.srcObject;
+      horizontalVideo.muted = video.muted;
+      horizontalVideo.volume = video.volume;
+      
+      // Sync volume controls
+      horizontalVolumeSlider.value = volumeSlider.value;
+      updateHorizontalMuteButton(video.volume);
+      
+      // Show orientation hint on mobile portrait
+      if (window.innerWidth <= 768 && window.innerHeight > window.innerWidth) {
+        orientationHint.classList.add('show');
+      }
+      
+      // Update button text
+      document.getElementById('horizontalBtn').textContent = '↩️ Exit Horizontal';
+      document.getElementById('horizontalBtn').classList.add('active');
+      
+      showToast('Entered horizontal view', 'success');
+    }
+
+    function exitHorizontalView() {
+      isHorizontalMode = false;
+      horizontalViewer.style.display = 'none';
+      orientationHint.classList.remove('show');
+      
+      // Update button text
+      document.getElementById('horizontalBtn').textContent = '📱 Horizontal View';
+      document.getElementById('horizontalBtn').classList.remove('active');
+      
+      showToast('Exited horizontal view', 'success');
+    }
+
+    function hideOrientationHint() {
+      orientationHint.classList.remove('show');
+    }
+
+    // Portrait fullscreen functions
+    function togglePortraitFull() {
+      if (!isConnected) {
+        showToast('No active stream to view fullscreen', 'error');
+        return;
+      }
+
+      if (!isPortraitFull) {
+        enterPortraitFull();
+      } else {
+        exitPortraitFull();
+      }
+    }
+
+    function enterPortraitFull() {
+      isPortraitFull = true;
+      const videoWrapper = document.querySelector('.video-wrapper');
+      videoWrapper.classList.add('portrait-fullscreen');
+      
+      // Update button text
+      document.getElementById('portraitFullBtn').textContent = '↩️ Exit Full';
+      document.getElementById('portraitFullBtn').classList.add('active');
+      
+      // Add portrait controls
+      if (!document.querySelector('.portrait-controls')) {
+        const portraitControls = document.createElement('div');
+        portraitControls.className = 'portrait-controls';
+        portraitControls.innerHTML = `
+          <button class="volume-btn" onclick="toggleMute()">🔊</button>
+          <button class="volume-btn" onclick="exitPortraitFull()">↩️</button>
+        `;
+        videoWrapper.appendChild(portraitControls);
+        
+        // Show controls on tap
+        videoWrapper.addEventListener('click', () => {
+          portraitControls.classList.toggle('visible');
+          setTimeout(() => portraitControls.classList.remove('visible'), 3000);
+        });
+      }
+      
+      showToast('Entered portrait fullscreen', 'success');
+    }
+
+    function exitPortraitFull() {
+      isPortraitFull = false;
+      const videoWrapper = document.querySelector('.video-wrapper');
+      videoWrapper.classList.remove('portrait-fullscreen');
+      
+      // Remove portrait controls
+      const portraitControls = document.querySelector('.portrait-controls');
+      if (portraitControls) {
+        portraitControls.remove();
+      }
+      
+      // Update button text
+      document.getElementById('portraitFullBtn').textContent = '📺 Full Screen';
+      document.getElementById('portraitFullBtn').classList.remove('active');
+      
+      showToast('Exited portrait fullscreen', 'success');
+    }
+
+    // Horizontal video controls
+    function toggleHorizontalMute() {
+      if (horizontalVideo.muted) {
+        horizontalVideo.muted = false;
+        video.muted = false;
+        horizontalVolumeSlider.disabled = false;
+        volumeSlider.disabled = false;
+      } else {
+        horizontalVideo.muted = true;
+        video.muted = true;
+        horizontalVolumeSlider.disabled = true;
+        volumeSlider.disabled = true;
+      }
+      updateHorizontalMuteButton(horizontalVideo.volume);
+      updateMuteButton(video.volume);
+    }
+
+    function updateHorizontalMuteButton(volume) {
+      if (horizontalVideo.muted || volume === 0) {
+        horizontalMuteBtn.textContent = '🔇';
+      } else if (volume < 0.3) {
+        horizontalMuteBtn.textContent = '🔉';
+      } else if (volume < 0.7) {
+        horizontalMuteBtn.textContent = '🔊';
+      } else {
+        horizontalMuteBtn.textContent = '📢';
+      }
+    }
+
+    // Sync horizontal volume slider
+    horizontalVolumeSlider.oninput = () => {
+      const volume = horizontalVolumeSlider.value / 100;
+      horizontalVideo.volume = volume;
+      video.volume = volume;
+      volumeSlider.value = horizontalVolumeSlider.value;
+      volumeLevel.textContent = Math.round(volume * 100) + '%';
+      
+      updateHorizontalMuteButton(volume);
+      updateMuteButton(volume);
+    };
+
+    // Handle orientation changes
+    function handleOrientationChange() {
+      setTimeout(() => {
+        // Auto-adjust video dimensions after orientation change
+        if (video.srcObject) {
+          video.style.height = 'auto';
+          video.style.width = '100%';
+        }
+        
+        // Hide orientation hint in landscape
+        if (window.innerWidth > window.innerHeight) {
+          hideOrientationHint();
+        }
+        
+        // Show/hide mobile controls based on screen size
+        if (isConnected && window.innerWidth <= 768) {
+          showMobileControls();
+        } else {
+          hideMobileControls();
+        }
+      }, 500);
+    }
+
+    // Touch gestures for mobile
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    video.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    video.addEventListener('touchend', (e) => {
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+      
+      // Swipe gestures (minimum 50px)
+      if (Math.abs(deltaX) > 50 || Math.abs(deltaY) > 50) {
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+          // Horizontal swipe
+          if (deltaX > 0) {
+            // Swipe right - enter horizontal view
+            if (isConnected && !isHorizontalMode) {
+              toggleHorizontalView();
+            }
+          } else {
+            // Swipe left - exit horizontal view
+            if (isHorizontalMode) {
+              exitHorizontalView();
+            }
+          }
+        } else {
+          // Vertical swipe
+          if (deltaY < 0) {
+            // Swipe up - enter fullscreen
+            if (isConnected && !isPortraitFull) {
+              togglePortraitFull();
+            }
+          } else {
+            // Swipe down - exit fullscreen
+            if (isPortraitFull) {
+              exitPortraitFull();
+            }
+          }
+        }
+      }
+    }, { passive: true });
+
     // Handle connection loss
     window.addEventListener('online', () => {
       if (peer && peer.disconnected) {
@@ -1686,15 +1995,22 @@
       updateMuteButton(0.5);
       
       // Handle mobile orientation changes
-      window.addEventListener('orientationchange', () => {
-        setTimeout(() => {
-          // Recalculate video dimensions after orientation change
-          if (video.srcObject) {
-            video.style.height = 'auto';
-            video.style.width = '100%';
+      window.addEventListener('orientationchange', handleOrientationChange);
+      
+      // Initial mobile controls check
+      if (window.innerWidth <= 768) {
+        // Mobile device detected
+        console.log('Mobile device detected');
+        
+        // Add resize listener for dynamic mobile control visibility
+        window.addEventListener('resize', () => {
+          if (isConnected && window.innerWidth <= 768) {
+            showMobileControls();
+          } else {
+            hideMobileControls();
           }
-        }, 500);
-      });
+        });
+      }
 
       // Add touch support for mobile
       let touchStartY = 0;

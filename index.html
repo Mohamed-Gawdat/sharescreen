@@ -2,103 +2,1419 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Online Screen Share</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-fullscreen">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0f0f23">
+  <title>ShareScreen Pro</title>
+  
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f9; padding: 30px; }
-    h1 { color: #333; }
-    input, button {
-      padding: 10px; margin: 10px;
-      border-radius: 8px; border: 1px solid #ccc; font-size: 16px;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    button { background: #4CAF50; color: white; cursor: pointer; }
-    button:hover { background: #45a049; }
+
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-light: #8b5cf6;
+      --secondary: #06d6a0;
+      --secondary-hover: #05a085;
+      --danger: #f72585;
+      --warning: #f77f00;
+      --success: #06d6a0;
+      --dark: #0f0f23;
+      --dark-light: #16213e;
+      --dark-lighter: #1e293b;
+      --glass-bg: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --text-primary: #ffffff;
+      --text-secondary: #94a3b8;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+      background: var(--dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Enhanced animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(6, 214, 160, 0.1) 0%, transparent 50%),
+        linear-gradient(135deg, var(--dark) 0%, var(--dark-light) 50%, var(--dark-lighter) 100%);
+      z-index: -2;
+      animation: backgroundFlow 30s ease-in-out infinite;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.02"><circle cx="30" cy="30" r="1"/></g></svg>');
+      z-index: -1;
+      animation: particleFloat 20s linear infinite;
+    }
+
+    @keyframes backgroundFlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+      33% { transform: translateY(-30px) rotate(1deg) scale(1.02); }
+      66% { transform: translateY(20px) rotate(-1deg) scale(0.98); }
+    }
+
+    @keyframes particleFloat {
+      0% { transform: translateY(0px) translateX(0px); }
+      100% { transform: translateY(-100px) translateX(50px); }
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .logo {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light), var(--secondary));
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+      animation: gradientShift 4s ease-in-out infinite;
+      letter-spacing: -2px;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+      font-weight: 400;
+    }
+
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    }
+
+    .info-section {
+      display: grid;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .id-display {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+      border: 2px solid rgba(99, 102, 241, 0.3);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .id-display::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(45deg, var(--primary), var(--primary-light), var(--secondary));
+      border-radius: 16px;
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .id-display:hover::before {
+      opacity: 0.3;
+    }
+
+    .id-label {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.75rem;
+      font-weight: 500;
+    }
+
+    .id-value {
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      font-size: 1.3rem;
+      font-weight: 700;
+      word-break: break-all;
+      color: var(--primary);
+      margin-bottom: 1rem;
+      text-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    }
+
+    .copy-btn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .copy-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 1.5rem;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .status-connecting {
+      background: linear-gradient(135deg, rgba(247, 127, 0, 0.15), rgba(251, 146, 60, 0.15));
+      border: 1px solid rgba(247, 127, 0, 0.3);
+      color: #f97316;
+    }
+
+    .status-connected {
+      background: linear-gradient(135deg, rgba(6, 214, 160, 0.15), rgba(5, 160, 133, 0.15));
+      border: 1px solid rgba(6, 214, 160, 0.3);
+      color: var(--secondary);
+    }
+
+    .status-disconnected {
+      background: linear-gradient(135deg, rgba(247, 37, 133, 0.15), rgba(220, 38, 127, 0.15));
+      border: 1px solid rgba(247, 37, 133, 0.3);
+      color: var(--danger);
+    }
+
+    .controls {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .input-group {
+      position: relative;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 1.25rem 1.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      color: white;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+
+    .input-field::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .btn {
+      padding: 1.25rem 2rem;
+      border: none;
+      border-radius: 16px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.6s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: white;
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, var(--secondary), var(--secondary-hover));
+      color: white;
+      box-shadow: 0 8px 20px rgba(6, 214, 160, 0.3);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, var(--danger), #dc2626);
+      color: white;
+      box-shadow: 0 8px 20px rgba(247, 37, 133, 0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(-1px);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .video-container {
+      flex: 1;
+      min-height: 500px;
+    }
+
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 500px;
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+      border-radius: 24px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+    }
+
     #video {
-      margin-top: 20px; width: 80%; max-width: 800px;
-      border: 2px solid #333; border-radius: 10px;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 24px;
     }
-    .info-box {
-      margin: 20px auto; padding: 15px;
-      background: #fff; border: 1px solid #ddd;
-      border-radius: 10px; max-width: 600px;
+
+    .video-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: var(--text-secondary);
+      z-index: 1;
+      transition: opacity 0.3s ease;
+    }
+
+    .video-placeholder {
+      font-size: 5rem;
+      margin-bottom: 1.5rem;
+      opacity: 0.4;
+      animation: pulse 3s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.05); }
+    }
+
+    .video-overlay p {
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+
+    .fullscreen-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1.4rem;
+      z-index: 10;
+      transition: all 0.3s ease;
+    }
+
+    .fullscreen-btn:hover {
+      background: rgba(0, 0, 0, 0.9);
+      transform: scale(1.1);
+    }
+
+    .audio-controls {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid var(--glass-border);
+    }
+
+    .volume-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .volume-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+    }
+
+    .volume-slider::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .volume-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1.4rem;
+      transition: all 0.3s ease;
+      min-width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .volume-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.05);
+    }
+
+    .volume-level {
+      font-weight: 600;
+      color: var(--primary);
+      min-width: 45px;
+      text-align: center;
+    }
+
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+        gap: 1.5rem;
+      }
+      
+      .glass-card {
+        padding: 2rem;
+        border-radius: 20px;
+      }
+      
+      .btn-group {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      
+      .video-wrapper {
+        min-height: 300px;
+        border-radius: 20px;
+      }
+      
+      .audio-controls {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .logo {
+        font-size: 2.5rem;
+      }
+
+      .video-placeholder {
+        font-size: 3rem;
+      }
+    }
+
+    /* Landscape mode for mobile */
+    @media (max-width: 768px) and (orientation: landscape) {
+      .container {
+        flex-direction: row;
+        gap: 1rem;
+        max-height: 100vh;
+      }
+      
+      .controls-section {
+        flex: 0 0 320px;
+        overflow-y: auto;
+      }
+      
+      .video-container {
+        flex: 1;
+        min-height: auto;
+      }
+
+      .video-wrapper {
+        min-height: calc(100vh - 40px);
+      }
+    }
+
+    /* Toast notifications */
+    .toast {
+      position: fixed;
+      top: 30px;
+      right: 30px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 1.25rem 2rem;
+      color: white;
+      z-index: 1000;
+      transform: translateX(400px);
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      font-weight: 600;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast.success {
+      border-left: 4px solid var(--secondary);
+      background: linear-gradient(135deg, rgba(6, 214, 160, 0.1), var(--glass-bg));
+    }
+
+    .toast.error {
+      border-left: 4px solid var(--danger);
+      background: linear-gradient(135deg, rgba(247, 37, 133, 0.1), var(--glass-bg));
+    }
+
+    /* Loading animation */
+    .loading {
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, var(--primary-hover), var(--primary));
     }
   </style>
 </head>
 <body>
-  <h1>📺 Online Screen Share</h1>
+  <div class="container">
+    <header>
+      <div class="logo">📺 ShareScreen Pro</div>
+      <div class="subtitle">Ultra HD Screen & Audio Sharing</div>
+    </header>
 
-  <div class="info-box">
-    <p><strong>Your ID:</strong> <span id="myId">Loading...</span></p>
-    <p>
-      👉 <b>Sharer:</b> Send your ID to your friend, enter their ID, then click <b>Start Sharing</b>.<br>
-      👉 <b>Viewer:</b> Paste your friend's ID below and click <b>Connect</b>.
-    </p>
+    <div class="controls-section">
+      <div class="glass-card">
+        <div class="info-section">
+          <div class="id-display">
+            <div class="id-label">Your Connection ID</div>
+            <div class="id-value loading" id="myId">Initializing...</div>
+            <button class="copy-btn" id="copyBtn" onclick="copyId()">📋 Copy ID</button>
+          </div>
+          <div class="status-indicator status-connecting" id="status">
+            <span id="statusDot">🟡</span>
+            <span id="statusText">Connecting to network...</span>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="input-group">
+            <input 
+              id="peerIdInput" 
+              class="input-field" 
+              placeholder="Enter friend's connection ID"
+              autocomplete="off"
+            >
+          </div>
+          
+          <div class="btn-group">
+            <button id="connectBtn" class="btn btn-primary">
+              🔗 Connect as Viewer
+            </button>
+            <button id="shareBtn" class="btn btn-secondary">
+              📤 Start Sharing
+            </button>
+          </div>
+          
+          <div class="usage-tip" style="margin-top: 1rem; padding: 1rem; background: rgba(99, 102, 241, 0.1); border-radius: 12px; font-size: 0.9rem; color: var(--text-secondary);">
+            <strong>📋 How to use:</strong><br>
+            <strong>Viewer:</strong> Click "Connect as Viewer" first, then wait for sharer to start<br>
+            <strong>Sharer:</strong> Wait for viewer to connect, then click "Start Sharing"<br><br>
+            <strong>⚠️ YouTube Issue Fix:</strong><br>
+            If sharing YouTube and viewer can't see it, try:<br>
+            • Refresh the YouTube page after starting share<br>
+            • Click somewhere on the YouTube page<br>
+            • Or share "Entire Screen" instead of just the tab
+          </div>
+          
+          <button id="disconnectBtn" class="btn btn-danger" style="display: none;">
+            ❌ Disconnect
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="video-container">
+      <div class="video-wrapper">
+        <div class="video-overlay" id="videoOverlay">
+          <div class="video-placeholder">📺</div>
+          <p>Ready to connect and share</p>
+        </div>
+        <video id="video" autoplay playsinline muted></video>
+        <button class="fullscreen-btn" id="fullscreenBtn" onclick="toggleFullscreen()">⛶</button>
+      </div>
+      
+      <div class="audio-controls">
+        <button class="volume-btn" id="muteBtn" onclick="toggleMute()">🔊</button>
+        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="50">
+        <span class="volume-level" id="volumeLevel">50%</span>
+      </div>
+    </div>
   </div>
-
-  <div>
-    <input id="peerIdInput" placeholder="Enter friend's ID">
-    <button id="connectBtn">Connect as Viewer</button>
-    <button id="shareBtn">Start Sharing</button>
-  </div>
-
-  <video id="video" autoplay playsinline></video>
 
   <script>
     const video = document.getElementById('video');
     const myIdEl = document.getElementById('myId');
+    const statusEl = document.getElementById('status');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const videoOverlay = document.getElementById('videoOverlay');
+    const connectBtn = document.getElementById('connectBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    const peerIdInput = document.getElementById('peerIdInput');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumeLevel = document.getElementById('volumeLevel');
+    const muteBtn = document.getElementById('muteBtn');
+    
+    let peer = null;
     let myStream = null;
+    let currentCall = null;
+    let isConnected = false;
+    let connection = null;
 
-    // Create Peer instance
-    const peer = new Peer();
-
-    peer.on('open', id => {
-      myIdEl.textContent = id; // Show your unique ID
-    });
-
-    // Handle incoming call (Viewer receives stream here)
-    peer.on('call', call => {
-      call.answer(); // Viewer answers with no stream
-      call.on('stream', stream => {
-        video.srcObject = stream;
-      });
-    });
-
-    // Viewer connects (just to establish link, waits for Sharer)
-    document.getElementById('connectBtn').onclick = () => {
-      const peerId = document.getElementById('peerIdInput').value;
-      if (!peerId) {
-        alert("Enter a friend's ID first!");
-        return;
-      }
-      peer.connect(peerId);
-      alert("Connected! Waiting for your friend to share the screen...");
-    };
-
-    // Sharer starts screen share
-    document.getElementById('shareBtn').onclick = async () => {
-      try {
-        const peerId = document.getElementById('peerIdInput').value;
-        if (!peerId) {
-          alert("Enter your friend's ID first!");
-          return;
+    // Initialize peer connection with better configuration
+    function initializePeer() {
+      peer = new Peer({
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+          ]
         }
+      });
 
-        myStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
-        const call = peer.call(peerId, myStream);
+      peer.on('open', id => {
+        console.log('Peer connected with ID:', id);
+        myIdEl.textContent = id;
+        updateStatus('connected', 'Ready to connect');
+        myIdEl.classList.remove('loading');
+      });
 
-        // Sharer can also see their own screen locally
-        video.srcObject = myStream;
+      peer.on('error', err => {
+        console.error('Peer error:', err);
+        showToast('Connection error: ' + err.message, 'error');
+        updateStatus('disconnected', 'Connection failed');
+      });
 
-        call.on('error', err => {
-          console.error("Call error:", err);
-          alert("Failed to connect: " + err);
+      // Handle incoming calls
+      peer.on('call', call => {
+        console.log('Receiving incoming call');
+        call.answer(); // Answer without sending stream (viewer side)
+        currentCall = call;
+        
+        call.on('stream', remoteStream => {
+          console.log('Received remote stream, tracks:', remoteStream.getTracks().map(t => t.kind));
+          
+          // Force enable all tracks
+          remoteStream.getTracks().forEach(track => {
+            track.enabled = true;
+            console.log(`${track.kind} track enabled:`, track.enabled, 'state:', track.readyState);
+          });
+          
+          video.srcObject = remoteStream;
+          video.muted = false;
+          
+          // Force video to play
+          video.play().then(() => {
+            console.log('Video playback started successfully');
+            videoOverlay.style.display = 'none';
+            updateStatus('connected', 'Receiving stream');
+            isConnected = true;
+            toggleButtons(true);
+            showToast('Stream connected successfully!', 'success');
+          }).catch(e => {
+            console.error('Video play failed:', e);
+            // Try without audio if autoplay fails
+            video.muted = true;
+            video.play().then(() => {
+              console.log('Video playing muted');
+              videoOverlay.style.display = 'none';
+              updateStatus('connected', 'Receiving stream (muted)');
+              isConnected = true;
+              toggleButtons(true);
+              showToast('Stream connected (click to unmute)', 'success');
+            }).catch(e2 => {
+              console.error('Muted video play also failed:', e2);
+              showToast('Video playback failed - try clicking play', 'error');
+            });
+          });
+
+          // Monitor remote stream health
+          const monitorRemoteStream = () => {
+            if (remoteStream && remoteStream.active) {
+              const tracks = remoteStream.getTracks();
+              const activeTracks = tracks.filter(track => track.readyState === 'live');
+              console.log(`Stream health: ${activeTracks.length}/${tracks.length} tracks active`);
+              
+              if (activeTracks.length === 0) {
+                console.log('All remote tracks ended');
+                showToast('Stream ended by sharer', 'error');
+                disconnect();
+              }
+            }
+          };
+
+          // Check remote stream health every 3 seconds
+          const remoteHealthCheck = setInterval(monitorRemoteStream, 3000);
+          
+          // Store for cleanup
+          remoteStream.healthCheckInterval = remoteHealthCheck;
+          
+          // Handle remote stream ending
+          remoteStream.addEventListener('removetrack', (event) => {
+            console.log('Remote track removed:', event.track.kind);
+            if (remoteStream.getTracks().length === 0) {
+              clearInterval(remoteHealthCheck);
+              disconnect();
+            }
+          });
         });
 
+        call.on('close', () => {
+          console.log('Call closed');
+          disconnect();
+        });
+
+        call.on('error', err => {
+          console.error('Call error:', err);
+          showToast('Call failed: ' + err.message, 'error');
+          disconnect();
+        });
+      });
+
+      // Handle incoming connections
+      peer.on('connection', conn => {
+        console.log('Incoming data connection from:', conn.peer);
+        connection = conn;
+        
+        conn.on('open', () => {
+          console.log('Data connection opened');
+        });
+
+        conn.on('data', (data) => {
+          console.log('Received data:', data);
+          
+          if (data.type === 'sharer_ping') {
+            console.log('Received ping from sharer');
+            // Respond that viewer is ready
+            conn.send({ type: 'viewer_ready', message: 'Viewer is ready to receive stream' });
+            showToast('Sharer is ready to start!', 'success');
+          } else if (data.type === 'stream_starting') {
+            updateStatus('connecting', 'Stream is starting...');
+            showToast('Receiving stream...', 'success');
+          }
+        });
+
+        conn.on('close', () => {
+          console.log('Data connection closed');
+          if (isConnected) {
+            disconnect();
+          }
+        });
+
+        conn.on('error', err => {
+          console.error('Data connection error:', err);
+        });
+      });
+    }
+
+    // Update connection status
+    function updateStatus(type, message) {
+      statusEl.className = `status-indicator status-${type}`;
+      statusText.textContent = message;
+      
+      switch(type) {
+        case 'connecting':
+          statusDot.textContent = '🟡';
+          break;
+        case 'connected':
+          statusDot.textContent = '🟢';
+          break;
+        case 'disconnected':
+          statusDot.textContent = '🔴';
+          break;
+      }
+    }
+
+    // Show toast notification
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => toast.classList.add('show'), 100);
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          if (document.body.contains(toast)) {
+            document.body.removeChild(toast);
+          }
+        }, 400);
+      }, 4000);
+    }
+
+    // Toggle button states
+    function toggleButtons(connected) {
+      connectBtn.style.display = connected ? 'none' : 'block';
+      shareBtn.style.display = connected ? 'none' : 'block';
+      disconnectBtn.style.display = connected ? 'block' : 'none';
+      peerIdInput.disabled = connected;
+    }
+
+    // Copy ID to clipboard
+    async function copyId() {
+      try {
+        await navigator.clipboard.writeText(myIdEl.textContent);
+        showToast('ID copied to clipboard!', 'success');
+        document.getElementById('copyBtn').textContent = '✅ Copied!';
+        setTimeout(() => {
+          document.getElementById('copyBtn').textContent = '📋 Copy ID';
+        }, 2000);
       } catch (err) {
-        console.error("Error: ", err);
-        alert("Screen share failed: " + err);
+        showToast('Failed to copy ID', 'error');
+      }
+    }
+
+    // Connect as viewer
+    connectBtn.onclick = () => {
+      const peerId = peerIdInput.value.trim();
+      if (!peerId) {
+        showToast('Please enter a connection ID', 'error');
+        peerIdInput.focus();
+        return;
+      }
+
+      console.log('Connecting to peer as viewer:', peerId);
+      updateStatus('connecting', 'Connecting to peer...');
+      
+      // Create connection first
+      connection = peer.connect(peerId);
+      
+      connection.on('open', () => {
+        console.log('Data connection established as viewer');
+        // Send a ready signal to the sharer
+        connection.send({ type: 'viewer_ready', message: 'Viewer is ready to receive stream' });
+        showToast('Connected! Ready to receive stream...', 'success');
+        updateStatus('connected', 'Connected - Ready for stream');
+        isConnected = true;
+        toggleButtons(true);
+      });
+
+      connection.on('data', (data) => {
+        console.log('Received data:', data);
+        if (data.type === 'stream_starting') {
+          updateStatus('connecting', 'Receiving stream...');
+          showToast('Stream is starting...', 'success');
+        }
+      });
+
+      connection.on('close', () => {
+        console.log('Data connection closed');
+        disconnect();
+      });
+
+      connection.on('error', err => {
+        console.error('Connection error:', err);
+        showToast('Failed to connect: ' + err.message, 'error');
+        updateStatus('disconnected', 'Connection failed');
+      });
+    };
+
+    // Start sharing
+    shareBtn.onclick = async () => {
+      const peerId = peerIdInput.value.trim();
+      if (!peerId) {
+        showToast('Please enter a connection ID', 'error');
+        peerIdInput.focus();
+        return;
+      }
+
+      try {
+        console.log('Attempting to start screen share to peer:', peerId);
+        updateStatus('connecting', 'Establishing connection...');
+        
+        // First establish data connection if not exists
+        if (!connection || connection._open !== true) {
+          connection = peer.connect(peerId);
+          
+          // Wait for connection to open
+          await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
+            
+            connection.on('open', () => {
+              clearTimeout(timeout);
+              console.log('Data connection established as sharer');
+              resolve();
+            });
+            
+            connection.on('error', (err) => {
+              clearTimeout(timeout);
+              reject(err);
+            });
+          });
+        }
+
+        // Check if viewer is ready
+        let viewerReady = false;
+        
+        // Listen for viewer ready signal
+        connection.on('data', (data) => {
+          if (data.type === 'viewer_ready') {
+            viewerReady = true;
+            console.log('Viewer confirmed ready');
+          }
+        });
+
+        // Send ping to check if viewer is ready
+        connection.send({ type: 'sharer_ping', message: 'Sharer ready to start' });
+        
+        // Wait a moment for viewer response or proceed anyway
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        updateStatus('connecting', 'Starting screen capture...');
+        
+        // Request screen capture with audio
+        const constraints = {
+          video: {
+            cursor: 'always',
+            displaySurface: 'browser',
+            frameRate: { ideal: 30, max: 60 },
+            width: { ideal: 1920, max: 1920 },
+            height: { ideal: 1080, max: 1080 }
+          },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            suppressLocalAudioPlayback: true
+          }
+        };
+
+        myStream = await navigator.mediaDevices.getDisplayMedia(constraints);
+        console.log('Screen capture obtained, tracks:', myStream.getTracks().map(t => t.kind));
+        
+        // Force refresh the video tracks to ensure they're active
+        myStream.getVideoTracks().forEach(track => {
+          console.log('Video track state:', track.readyState, track.enabled);
+          track.enabled = true;
+        });
+        
+        // Notify viewer that stream is starting
+        if (connection && connection._open) {
+          connection.send({ type: 'stream_starting', message: 'Screen sharing is starting' });
+        }
+        
+        updateStatus('connecting', 'Calling peer...');
+        
+        // Small delay to ensure viewer is ready
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Call the peer with the stream
+        const call = peer.call(peerId, myStream);
+        currentCall = call;
+        
+        if (!call) {
+          throw new Error('Failed to initiate call - peer may not be ready');
+        }
+        
+        console.log('Call initiated successfully');
+        
+        // Show own stream locally (muted to prevent feedback)
+        video.srcObject = myStream;
+        video.muted = true;
+        videoOverlay.style.display = 'none';
+        
+        // Force video element to play
+        video.play().catch(e => console.log('Auto-play failed:', e));
+        
+        updateStatus('connected', 'Sharing screen');
+        isConnected = true;
+        toggleButtons(true);
+        showToast('Screen sharing started successfully!', 'success');
+
+        // Handle call events
+        call.on('stream', remoteStream => {
+          console.log('Received stream from peer (should not happen for sharer)');
+        });
+
+        call.on('close', () => {
+          console.log('Call closed by peer');
+          disconnect();
+          showToast('Viewer disconnected', 'error');
+        });
+
+        call.on('error', err => {
+          console.error('Call error:', err);
+          showToast('Call failed: ' + err.message, 'error');
+          disconnect();
+        });
+
+        // Monitor stream health
+        const monitorStream = () => {
+          if (myStream && myStream.active) {
+            const videoTrack = myStream.getVideoTracks()[0];
+            if (videoTrack) {
+              console.log('Stream health check - Track state:', videoTrack.readyState, 'Active:', myStream.active);
+              
+              // If track becomes inactive, try to refresh
+              if (videoTrack.readyState === 'ended' || !myStream.active) {
+                console.log('Stream became inactive, attempting to refresh...');
+                showToast('Stream connection lost, attempting to reconnect...', 'error');
+                
+                // Try to restart the call with a fresh stream
+                setTimeout(async () => {
+                  try {
+                    const newStream = await navigator.mediaDevices.getDisplayMedia(constraints);
+                    if (currentCall) {
+                      // Replace the stream in the existing call
+                      const sender = currentCall.peerConnection.getSenders().find(s => 
+                        s.track && s.track.kind === 'video'
+                      );
+                      if (sender) {
+                        await sender.replaceTrack(newStream.getVideoTracks()[0]);
+                        myStream = newStream;
+                        video.srcObject = newStream;
+                        showToast('Stream reconnected successfully!', 'success');
+                      }
+                    }
+                  } catch (e) {
+                    console.error('Failed to refresh stream:', e);
+                  }
+                }, 1000);
+              }
+            }
+          }
+        };
+
+        // Check stream health every 5 seconds
+        const healthCheckInterval = setInterval(monitorStream, 5000);
+
+        // Handle stream ending (user stops sharing)
+        myStream.getVideoTracks()[0].addEventListener('ended', () => {
+          console.log('Screen sharing ended by user');
+          clearInterval(healthCheckInterval);
+          disconnect();
+          showToast('Screen sharing stopped', 'success');
+        });
+
+        // Handle audio track ending
+        const audioTrack = myStream.getAudioTracks()[0];
+        if (audioTrack) {
+          audioTrack.addEventListener('ended', () => {
+            console.log('Audio sharing ended');
+          });
+        }
+
+        // Store the health check interval for cleanup
+        myStream.healthCheckInterval = healthCheckInterval;
+
+      } catch (err) {
+        console.error('Screen share error:', err);
+        let errorMessage = 'Screen sharing failed';
+        
+        if (err.name === 'NotAllowedError') {
+          errorMessage = 'Screen sharing permission denied';
+        } else if (err.name === 'NotSupportedError') {
+          errorMessage = 'Screen sharing not supported in this browser';
+        } else if (err.message.includes('timeout')) {
+          errorMessage = 'Connection timeout - make sure viewer is connected first';
+        } else if (err.message.includes('not be ready')) {
+          errorMessage = 'Viewer not ready - ask them to connect first';
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        
+        showToast(errorMessage, 'error');
+        updateStatus('disconnected', 'Sharing failed');
+        
+        // Cleanup on error
+        if (myStream) {
+          myStream.getTracks().forEach(track => track.stop());
+          myStream = null;
+        }
       }
     };
+
+    // Disconnect function
+    function disconnect() {
+      console.log('Disconnecting...');
+      
+      if (currentCall) {
+        currentCall.close();
+        currentCall = null;
+      }
+      
+      if (connection) {
+        connection.close();
+        connection = null;
+      }
+      
+      if (myStream) {
+        // Clear health check interval
+        if (myStream.healthCheckInterval) {
+          clearInterval(myStream.healthCheckInterval);
+        }
+        
+        myStream.getTracks().forEach(track => {
+          track.stop();
+          console.log('Stopped track:', track.kind);
+        });
+        myStream = null;
+      }
+      
+      // Clear remote stream health check if exists
+      if (video.srcObject && video.srcObject.healthCheckInterval) {
+        clearInterval(video.srcObject.healthCheckInterval);
+      }
+      
+      video.srcObject = null;
+      video.muted = true;
+      videoOverlay.style.display = 'flex';
+      updateStatus('connected', 'Ready to connect');
+      isConnected = false;
+      toggleButtons(false);
+    }
+
+    // Disconnect button handler
+    disconnectBtn.onclick = () => {
+      disconnect();
+      showToast('Disconnected successfully', 'success');
+    };
+
+    // Volume controls
+    volumeSlider.oninput = () => {
+      const volume = volumeSlider.value / 100;
+      video.volume = volume;
+      volumeLevel.textContent = Math.round(volume * 100) + '%';
+      
+      updateMuteButton(volume);
+    };
+
+    function updateMuteButton(volume) {
+      if (video.muted || volume === 0) {
+        muteBtn.textContent = '🔇';
+      } else if (volume < 0.3) {
+        muteBtn.textContent = '🔉';
+      } else if (volume < 0.7) {
+        muteBtn.textContent = '🔊';
+      } else {
+        muteBtn.textContent = '📢';
+      }
+    }
+
+    // Mute/unmute toggle
+    function toggleMute() {
+      if (video.muted) {
+        video.muted = false;
+        volumeSlider.disabled = false;
+        volumeSlider.style.opacity = '1';
+        showToast('Audio unmuted', 'success');
+      } else {
+        video.muted = true;
+        volumeSlider.disabled = true;
+        volumeSlider.style.opacity = '0.5';
+        showToast('Audio muted', 'success');
+      }
+      updateMuteButton(video.volume);
+    }
+
+    // Fullscreen functionality
+    function toggleFullscreen() {
+      const videoWrapper = document.querySelector('.video-wrapper');
+      
+      if (!document.fullscreenElement) {
+        videoWrapper.requestFullscreen().then(() => {
+          showToast('Entered fullscreen mode', 'success');
+        }).catch(err => {
+          showToast('Fullscreen failed: ' + err.message, 'error');
+        });
+      } else {
+        document.exitFullscreen().then(() => {
+          showToast('Exited fullscreen mode', 'success');
+        });
+      }
+    }
+
+    // Handle fullscreen changes
+    document.addEventListener('fullscreenchange', () => {
+      const fullscreenBtn = document.getElementById('fullscreenBtn');
+      if (document.fullscreenElement) {
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.background = 'rgba(0, 0, 0, 0.9)';
+      } else {
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.background = 'rgba(0, 0, 0, 0.8)';
+      }
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // F11 for fullscreen
+      if (e.key === 'F11') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+      
+      // Space for mute/unmute
+      if (e.code === 'Space' && e.target === document.body) {
+        e.preventDefault();
+        toggleMute();
+      }
+      
+      // Escape to disconnect
+      if (e.key === 'Escape' && isConnected) {
+        disconnect();
+        showToast('Disconnected via keyboard shortcut', 'success');
+      }
+    });
+
+    // Handle page visibility for mobile optimization
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden' && myStream) {
+        console.log('Page hidden, keeping video tracks enabled for sharing');
+        // Don't disable tracks when sharing - this was causing the YouTube issue
+        // myStream.getVideoTracks().forEach(track => track.enabled = false);
+      } else if (document.visibilityState === 'visible' && myStream) {
+        console.log('Page visible, ensuring video tracks are enabled');
+        myStream.getVideoTracks().forEach(track => track.enabled = true);
+      }
+    });
+
+    // Add click handler to video for manual play (fixes autoplay issues)
+    video.addEventListener('click', () => {
+      if (video.paused) {
+        video.play().then(() => {
+          showToast('Video playback resumed', 'success');
+        }).catch(e => {
+          console.error('Manual play failed:', e);
+          showToast('Video play failed: ' + e.message, 'error');
+        });
+      }
+    });
+
+    // Handle connection loss
+    window.addEventListener('online', () => {
+      if (peer && peer.disconnected) {
+        showToast('Connection restored, reconnecting...', 'success');
+        peer.reconnect();
+      }
+    });
+
+    window.addEventListener('offline', () => {
+      showToast('Connection lost', 'error');
+      updateStatus('disconnected', 'No internet connection');
+    });
+
+    // Initialize everything when page loads
+    window.addEventListener('load', () => {
+      console.log('Page loaded, initializing peer connection');
+      initializePeer();
+      
+      // Set initial volume
+      video.volume = 0.5;
+      updateMuteButton(0.5);
+      
+      // Handle mobile orientation changes
+      window.addEventListener('orientationchange', () => {
+        setTimeout(() => {
+          // Recalculate video dimensions after orientation change
+          if (video.srcObject) {
+            video.style.height = 'auto';
+            video.style.width = '100%';
+          }
+        }, 500);
+      });
+
+      // Add touch support for mobile
+      let touchStartY = 0;
+      document.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+      }, { passive: true });
+
+      document.addEventListener('touchmove', (e) => {
+        const touchY = e.touches[0].clientY;
+        const touchDiff = touchStartY - touchY;
+
+        // Prevent pull-to-refresh on mobile
+        if (touchDiff < 0 && window.scrollY === 0) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      console.log('Initialization complete');
+    });
+
+    // Error handling for unhandled promise rejections
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('Unhandled promise rejection:', event.reason);
+      showToast('An unexpected error occurred', 'error');
+    });
+
+    // Service worker registration for PWA capabilities
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('SW registered: ', registration);
+          })
+          .catch((registrationError) => {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
   </script>
 </body>
 </html>

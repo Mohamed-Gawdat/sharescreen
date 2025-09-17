@@ -1,2054 +1,1154 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-fullscreen">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#0f0f23">
-  <title>ShareScreen Pro</title>
-  
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-  
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    :root {
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --primary-light: #8b5cf6;
-      --secondary: #06d6a0;
-      --secondary-hover: #05a085;
-      --danger: #f72585;
-      --warning: #f77f00;
-      --success: #06d6a0;
-      --dark: #0f0f23;
-      --dark-light: #16213e;
-      --dark-lighter: #1e293b;
-      --glass-bg: rgba(255, 255, 255, 0.08);
-      --glass-border: rgba(255, 255, 255, 0.15);
-      --text-primary: #ffffff;
-      --text-secondary: #94a3b8;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
-      background: var(--dark);
-      color: var(--text-primary);
-      min-height: 100vh;
-      overflow-x: hidden;
-      position: relative;
-    }
-
-    /* Enhanced animated background */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: 
-        radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(6, 214, 160, 0.1) 0%, transparent 50%),
-        linear-gradient(135deg, var(--dark) 0%, var(--dark-light) 50%, var(--dark-lighter) 100%);
-      z-index: -2;
-      animation: backgroundFlow 30s ease-in-out infinite;
-    }
-
-    body::after {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.02"><circle cx="30" cy="30" r="1"/></g></svg>');
-      z-index: -1;
-      animation: particleFloat 20s linear infinite;
-    }
-
-    @keyframes backgroundFlow {
-      0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
-      33% { transform: translateY(-30px) rotate(1deg) scale(1.02); }
-      66% { transform: translateY(20px) rotate(-1deg) scale(0.98); }
-    }
-
-    @keyframes particleFloat {
-      0% { transform: translateY(0px) translateX(0px); }
-      100% { transform: translateY(-100px) translateX(50px); }
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 20px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-
-    .logo {
-      font-size: clamp(2.5rem, 6vw, 4rem);
-      font-weight: 900;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light), var(--secondary));
-      background-size: 200% 200%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 0.5rem;
-      animation: gradientShift 4s ease-in-out infinite;
-      letter-spacing: -2px;
-    }
-
-    @keyframes gradientShift {
-      0%, 100% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-    }
-
-    .subtitle {
-      font-size: 1.2rem;
-      color: var(--text-secondary);
-      margin-bottom: 1rem;
-      font-weight: 400;
-    }
-
-    .glass-card {
-      background: var(--glass-bg);
-      backdrop-filter: blur(25px);
-      border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 2.5rem;
-      box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .glass-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    }
-
-    .info-section {
-      display: grid;
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .id-display {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
-      border: 2px solid rgba(99, 102, 241, 0.3);
-      border-radius: 16px;
-      padding: 1.5rem;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .id-display::before {
-      content: '';
-      position: absolute;
-      top: -2px;
-      left: -2px;
-      right: -2px;
-      bottom: -2px;
-      background: linear-gradient(45deg, var(--primary), var(--primary-light), var(--secondary));
-      border-radius: 16px;
-      z-index: -1;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .id-display:hover::before {
-      opacity: 0.3;
-    }
-
-    .id-label {
-      font-size: 1rem;
-      color: var(--text-secondary);
-      margin-bottom: 0.75rem;
-      font-weight: 500;
-    }
-
-    .id-value {
-      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
-      font-size: 1.3rem;
-      font-weight: 700;
-      word-break: break-all;
-      color: var(--primary);
-      margin-bottom: 1rem;
-      text-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
-    }
-
-    .copy-btn {
-      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-    }
-
-    .copy-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
-    }
-
-    .status-indicator {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 1rem 1.5rem;
-      border-radius: 50px;
-      font-size: 1rem;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-
-    .status-connecting {
-      background: linear-gradient(135deg, rgba(247, 127, 0, 0.15), rgba(251, 146, 60, 0.15));
-      border: 1px solid rgba(247, 127, 0, 0.3);
-      color: #f97316;
-    }
-
-    .status-connected {
-      background: linear-gradient(135deg, rgba(6, 214, 160, 0.15), rgba(5, 160, 133, 0.15));
-      border: 1px solid rgba(6, 214, 160, 0.3);
-      color: var(--secondary);
-    }
-
-    .status-disconnected {
-      background: linear-gradient(135deg, rgba(247, 37, 133, 0.15), rgba(220, 38, 127, 0.15));
-      border: 1px solid rgba(247, 37, 133, 0.3);
-      color: var(--danger);
-    }
-
-    .controls {
-      display: grid;
-      gap: 1.5rem;
-    }
-
-    .input-group {
-      position: relative;
-    }
-
-    .input-field {
-      width: 100%;
-      padding: 1.25rem 1.5rem;
-      background: rgba(255, 255, 255, 0.05);
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      color: white;
-      font-size: 1.1rem;
-      transition: all 0.3s ease;
-      font-weight: 500;
-    }
-
-    .input-field:focus {
-      outline: none;
-      border-color: var(--primary);
-      background: rgba(255, 255, 255, 0.1);
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-    }
-
-    .input-field::placeholder {
-      color: rgba(255, 255, 255, 0.5);
-    }
-
-    .btn-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-    }
-
-    .btn {
-      padding: 1.25rem 2rem;
-      border: none;
-      border-radius: 16px;
-      font-size: 1.1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.6s;
-    }
-
-    .btn:hover::before {
-      left: 100%;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-      color: white;
-      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
-    }
-
-    .btn-secondary {
-      background: linear-gradient(135deg, var(--secondary), var(--secondary-hover));
-      color: white;
-      box-shadow: 0 8px 20px rgba(6, 214, 160, 0.3);
-    }
-
-    .btn-danger {
-      background: linear-gradient(135deg, var(--danger), #dc2626);
-      color: white;
-      box-shadow: 0 8px 20px rgba(247, 37, 133, 0.3);
-    }
-
-    .btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
-    }
-
-    .btn:active {
-      transform: translateY(-1px);
-    }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none !important;
-      box-shadow: none !important;
-    }
-
-    .video-container {
-      flex: 1;
-      min-height: 500px;
-    }
-
-    .video-wrapper {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      min-height: 500px;
-      background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
-      border-radius: 24px;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid var(--glass-border);
-      backdrop-filter: blur(10px);
-    }
-
-    #video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      border-radius: 24px;
-    }
-
-    .video-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      color: var(--text-secondary);
-      z-index: 1;
-      transition: opacity 0.3s ease;
-    }
-
-    .video-placeholder {
-      font-size: 5rem;
-      margin-bottom: 1.5rem;
-      opacity: 0.4;
-      animation: pulse 3s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.4; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(1.05); }
-    }
-
-    .video-overlay p {
-      font-size: 1.2rem;
-      font-weight: 500;
-    }
-
-    .fullscreen-btn {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      padding: 12px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 1.4rem;
-      z-index: 10;
-      transition: all 0.3s ease;
-    }
-
-    .fullscreen-btn:hover {
-      background: rgba(0, 0, 0, 0.9);
-      transform: scale(1.1);
-    }
-
-    .audio-controls {
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-      padding: 1.5rem;
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      border-radius: 20px;
-      border: 1px solid var(--glass-border);
-    }
-
-    .volume-slider {
-      flex: 1;
-      -webkit-appearance: none;
-      appearance: none;
-      height: 8px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 4px;
-      outline: none;
-      cursor: pointer;
-    }
-
-    .volume-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 24px;
-      height: 24px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      border-radius: 50%;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-      transition: all 0.3s ease;
-    }
-
-    .volume-slider::-webkit-slider-thumb:hover {
-      transform: scale(1.2);
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
-    }
-
-    .volume-slider::-moz-range-thumb {
-      width: 24px;
-      height: 24px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      border-radius: 50%;
-      cursor: pointer;
-      border: none;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-    }
-
-    .volume-btn {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      padding: 12px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 1.4rem;
-      transition: all 0.3s ease;
-      min-width: 48px;
-      height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .volume-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: scale(1.05);
-    }
-
-    .volume-level {
-      font-weight: 600;
-      color: var(--primary);
-      min-width: 45px;
-      text-align: center;
-    }
-
-    /* Mobile optimizations */
-    @media (max-width: 768px) {
-      .container {
-        padding: 10px;
-        gap: 1rem;
-      }
-      
-      .glass-card {
-        padding: 1.5rem;
-        border-radius: 16px;
-      }
-      
-      .btn-group {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-      
-      .btn {
-        padding: 1rem 1.5rem;
-        font-size: 1rem;
-        min-height: 48px; /* Better touch targets */
-      }
-      
-      .video-wrapper {
-        min-height: 250px;
-        border-radius: 16px;
-      }
-      
-      .audio-controls {
-        flex-wrap: wrap;
-        gap: 1rem;
-        padding: 1rem;
-      }
-
-      .logo {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-      }
-
-      .subtitle {
-        font-size: 1rem;
-      }
-
-      .video-placeholder {
-        font-size: 2.5rem;
-      }
-
-      .input-field {
-        padding: 1rem;
-        font-size: 16px; /* Prevents zoom on iOS */
-      }
-
-      .id-value {
-        font-size: 1rem;
-        line-height: 1.4;
-      }
-
-      .usage-tip {
-        font-size: 0.85rem;
-        padding: 0.75rem;
-      }
-
-      /* Mobile-specific video controls */
-      .mobile-video-controls {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.75rem;
-        background: rgba(0, 0, 0, 0.8);
-        backdrop-filter: blur(10px);
-        border-radius: 12px;
-        margin-top: 0.5rem;
-      }
-
-      .rotate-btn {
-        background: rgba(99, 102, 241, 0.2);
-        border: 1px solid rgba(99, 102, 241, 0.4);
-        color: var(--primary);
-        padding: 8px 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-      }
-
-      .rotate-btn:hover, .rotate-btn.active {
-        background: var(--primary);
-        color: white;
-      }
-    }
-
-    /* Landscape mode for mobile - Enhanced */
-    @media (max-width: 768px) and (orientation: landscape) {
-      body {
-        overflow: hidden;
-      }
-
-      .container {
-        flex-direction: row;
-        gap: 1rem;
-        max-height: 100vh;
-        padding: 10px;
-      }
-      
-      .controls-section {
-        flex: 0 0 300px;
-        overflow-y: auto;
-        max-height: 100vh;
-      }
-
-      .controls-section::-webkit-scrollbar {
-        width: 4px;
-      }
-      
-      .video-container {
-        flex: 1;
-        min-height: auto;
-        display: flex;
-        flex-direction: column;
-      }
-
-      .video-wrapper {
-        flex: 1;
-        min-height: calc(100vh - 80px);
-        max-height: calc(100vh - 80px);
-      }
-
-      .glass-card {
-        padding: 1rem;
-        margin-bottom: 1rem;
-      }
-
-      .logo {
-        font-size: 1.5rem;
-      }
-
-      .subtitle {
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-      }
-
-      .audio-controls {
-        margin-top: 0.5rem;
-        padding: 0.75rem;
-      }
-
-      /* Hide usage tip in landscape to save space */
-      .usage-tip {
-        display: none;
-      }
-    }
-
-    /* Portrait mode optimizations */
-    @media (max-width: 768px) and (orientation: portrait) {
-      .video-container {
-        min-height: 300px;
-      }
-
-      .video-wrapper {
-        min-height: 300px;
-      }
-
-      /* Full screen video option for portrait */
-      .video-wrapper.portrait-fullscreen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 1000;
-        min-height: 100vh;
-        border-radius: 0;
-        background: black;
-      }
-
-      .video-wrapper.portrait-fullscreen #video {
-        border-radius: 0;
-      }
-
-      .portrait-controls {
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        gap: 1rem;
-        z-index: 1001;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-
-      .video-wrapper.portrait-fullscreen:hover .portrait-controls,
-      .portrait-controls.visible {
-        opacity: 1;
-      }
-    }
-
-    /* Ultra-wide mobile screens */
-    @media (max-width: 900px) and (min-width: 769px) {
-      .container {
-        max-width: 100%;
-        padding: 15px;
-      }
-
-      .btn-group {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .video-wrapper {
-        min-height: 400px;
-      }
-    }
-
-    /* Small mobile screens */
-    @media (max-width: 480px) {
-      .container {
-        padding: 8px;
-        gap: 0.75rem;
-      }
-
-      .glass-card {
-        padding: 1rem;
-        border-radius: 12px;
-      }
-
-      .logo {
-        font-size: 1.8rem;
-        letter-spacing: -1px;
-      }
-
-      .subtitle {
-        font-size: 0.9rem;
-      }
-
-      .id-value {
-        font-size: 0.9rem;
-        word-break: break-all;
-      }
-
-      .btn {
-        padding: 0.875rem 1rem;
-        font-size: 0.9rem;
-      }
-
-      .audio-controls {
-        padding: 0.75rem;
-      }
-
-      .volume-btn {
-        min-width: 40px;
-        height: 40px;
-        font-size: 1.2rem;
-      }
-
-      .fullscreen-btn {
-        bottom: 15px;
-        right: 15px;
-        padding: 10px;
-        font-size: 1.2rem;
-      }
-    }
-
-    /* Horizontal video viewer mode */
-    .horizontal-viewer {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 1000;
-      background: var(--dark);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .horizontal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-      background: rgba(0, 0, 0, 0.9);
-      backdrop-filter: blur(10px);
-    }
-
-    .horizontal-title {
-      color: white;
-      font-weight: 600;
-      font-size: 1.1rem;
-    }
-
-    .horizontal-close {
-      background: var(--danger);
-      border: none;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .horizontal-video-container {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-
-    .horizontal-video-container video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .horizontal-controls {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 1rem;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(10px);
-      padding: 1rem;
-      border-radius: 12px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .horizontal-video-container:hover .horizontal-controls,
-    .horizontal-controls.visible {
-      opacity: 1;
-    }
-
-    /* Force landscape orientation hint */
-    .orientation-hint {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: var(--dark);
-      z-index: 2000;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 2rem;
-    }
-
-    .orientation-icon {
-      font-size: 4rem;
-      margin-bottom: 1rem;
-      animation: rotate 2s infinite;
-    }
-
-    @keyframes rotate {
-      0%, 100% { transform: rotate(0deg); }
-      50% { transform: rotate(90deg); }
-    }
-
-    .orientation-text {
-      font-size: 1.2rem;
-      color: var(--text-secondary);
-      margin-bottom: 1rem;
-    }
-
-    .skip-orientation {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    /* Show orientation hint only in portrait when horizontal mode is active */
-    @media (max-width: 768px) and (orientation: portrait) {
-      .orientation-hint.show {
-        display: flex;
-      }
-    }
-
-    /* Toast notifications */
-    .toast {
-      position: fixed;
-      top: 30px;
-      right: 30px;
-      background: var(--glass-bg);
-      backdrop-filter: blur(25px);
-      border: 1px solid var(--glass-border);
-      border-radius: 16px;
-      padding: 1.25rem 2rem;
-      color: white;
-      z-index: 1000;
-      transform: translateX(400px);
-      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-      font-weight: 600;
-    }
-
-    .toast.show {
-      transform: translateX(0);
-    }
-
-    .toast.success {
-      border-left: 4px solid var(--secondary);
-      background: linear-gradient(135deg, rgba(6, 214, 160, 0.1), var(--glass-bg));
-    }
-
-    .toast.error {
-      border-left: 4px solid var(--danger);
-      background: linear-gradient(135deg, rgba(247, 37, 133, 0.1), var(--glass-bg));
-    }
-
-    /* Loading animation */
-    .loading {
-      animation: shimmer 2s infinite;
-    }
-
-    @keyframes shimmer {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    /* Scrollbar styling */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(135deg, var(--primary-hover), var(--primary));
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-fullscreen">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0f0f23">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap" rel="stylesheet">
+    <title>ShareScreen</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #06d6a0;
+            --secondary-hover: #05a085;
+            --danger: #f72585;
+            --success: #06d6a0;
+            --dark: #0f0f23;
+            --dark-light: #16213e;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            /* background: linear-gradient(135deg, var(--dark) 0%, var(--dark-light) 100%); */
+            background-image: radial-gradient(circle, #190621, #1b0a24, #1d0d26, #1f1029, #22122c, #22122c, #22122c, #22122c, #1f1029, #1d0d26, #1b0a24, #190621);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .logo {
+
+            font-family: "Dancing Script", cursive;
+            font-optical-sizing: auto;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .info-section {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .id-display {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(6, 214, 160, 0.1));
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .id-label {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .id-value {
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-height: 44px;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .status-connecting {
+            background: linear-gradient(135deg, rgba(247, 127, 0, 0.15), rgba(251, 146, 60, 0.15));
+            border: 1px solid rgba(247, 127, 0, 0.3);
+            color: #f97316;
+        }
+
+        .status-connected {
+            background: linear-gradient(135deg, rgba(6, 214, 160, 0.15), rgba(5, 160, 133, 0.15));
+            border: 1px solid rgba(6, 214, 160, 0.3);
+            color: var(--secondary);
+        }
+
+        .status-disconnected {
+            background: linear-gradient(135deg, rgba(247, 37, 133, 0.15), rgba(220, 38, 127, 0.15));
+            border: 1px solid rgba(247, 37, 133, 0.3);
+            color: var(--danger);
+        }
+
+        .controls {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 1.2rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            color: white;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            min-height: 56px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .btn {
+            padding: 1.2rem 2rem;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-height: 56px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-hover));
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .video-container {
+            flex: 1;
+            min-height: 400px;
+            position: relative;
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--glass-border);
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 20px;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: var(--text-secondary);
+            z-index: 1;
+        }
+
+        .video-placeholder {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .video-overlay p {
+            font-family: "Dancing Script", cursive;
+            font-size: 1.4rem;
+            font-weight: 500;
+        }
+
+        /* Mobile Video Controls - Clean Design */
+        .mobile-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(15px);
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 10;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-controls.show {
+            opacity: 1;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .control-btn.active {
+            background: var(--primary);
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .volume-slider {
+            width: 80px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+            -webkit-appearance: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Horizontal Mode - Full Clean Screen */
+        .horizontal-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            background: black;
+            display: none;
+        }
+
+        .horizontal-mode.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .horizontal-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            color: white;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: all 0.4s ease;
+            font-weight: 600;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--secondary);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                gap: 1.5rem;
+            }
+
+            .glass-card {
+                padding: 1.5rem;
+                border-radius: 16px;
+            }
+
+            .logo {
+                font-size: 2.2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .btn-group {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .btn {
+                min-height: 52px;
+                padding: 1rem 1.5rem;
+            }
+
+            .video-wrapper {
+                min-height: 300px;
+                border-radius: 16px;
+            }
+
+            #video {
+                border-radius: 16px;
+            }
+
+            .mobile-controls {
+                display: flex;
+            }
+
+            .id-value {
+                font-size: 1.2rem;
+            }
+
+            .toast {
+                top: 20px;
+                right: 20px;
+                left: 20px;
+                transform: translateY(-100px);
+            }
+
+            .toast.show {
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 12px;
+                gap: 1rem;
+            }
+
+            .glass-card {
+                padding: 1.2rem;
+            }
+
+            .logo {
+                font-size: 2rem;
+            }
+
+            .id-value {
+                font-size: 1rem;
+            }
+
+            .btn {
+                min-height: 48px;
+                font-size: 1rem;
+            }
+
+            .video-wrapper {
+                min-height: 250px;
+            }
+
+            .mobile-controls {
+                gap: 8px;
+                padding: 10px 16px;
+            }
+
+            .control-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.1rem;
+            }
+
+            .volume-slider {
+                width: 60px;
+            }
+        }
+
+        /* Landscape Mode for Mobile */
+        @media (max-width: 768px) and (orientation: landscape) {
+            body {
+            overflow-y: auto;   /* allow vertical scrolling */
+            overflow-x: hidden; /* prevent sideways scrolling */
+            }
+
+            .container {
+                flex-direction: row;
+                gap: 1rem;
+                max-height: 100vh;
+                padding: 10px;
+            }
+
+            .controls-section {
+                flex: 0 0 280px;
+                overflow-y: auto;
+            }
+
+            .video-container {
+                flex: 1;
+                min-height: auto;
+            }
+
+            .video-wrapper {
+                min-height: calc(100vh - 60px);
+            }
+
+            .glass-card {
+                padding: 1rem;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+
+            .subtitle {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Hide scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 3px;
+        }
+
+        @media (min-width: 769px) {
+            .mobile-controls {
+                display: flex !important;
+            }
+        }
+    </style>
 </head>
+
 <body>
-  <div class="container">
-    <header>
-      <div class="logo">📺 ShareScreen Pro</div>
-      <div class="subtitle">Ultra HD Screen & Audio Sharing</div>
-    </header>
+    <div class="container">
+        <header>
+            <div class="logo">ShareScreen</div>
+            <div class="subtitle">HD Screen & Audio Sharing</div>
+        </header>
 
-    <div class="controls-section">
-      <div class="glass-card">
-        <div class="info-section">
-          <div class="id-display">
-            <div class="id-label">Your Connection ID</div>
-            <div class="id-value loading" id="myId">Generating ID...</div>
-            <button class="copy-btn" id="copyBtn" onclick="copyId()">📋 Copy ID</button>
-          </div>
-          <div class="status-indicator status-connecting" id="status">
-            <span id="statusDot">🟡</span>
-            <span id="statusText">Connecting to network...</span>
-          </div>
+        <div class="controls-section">
+            <div class="glass-card">
+                <div class="info-section">
+                    <div class="id-display">
+                        <div class="id-label">Your Connection ID</div>
+                        <div class="id-value" id="myId">Generating ID...</div>
+                        <button class="copy-btn" id="copyBtn" onclick="copyId()">📋 Copy ID</button>
+                    </div>
+                    <div class="status-indicator status-connecting" id="status">
+                        <span id="statusDot">🟡</span>
+                        <span id="statusText">Connecting to network...</span>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <div class="input-group">
+                        <input id="peerIdInput" class="input-field"
+                            placeholder="Enter friend's 5-digit ID" autocomplete="off" maxlength="5"
+                            pattern="[0-9]*" inputmode="numeric">
+                    </div>
+
+                    <div class="btn-group">
+                        <button id="connectBtn" class="btn btn-primary">
+                            🔗 Connect as Viewer
+                        </button>
+                        <button id="shareBtn" class="btn btn-secondary">
+                            📤 Start Sharing
+                        </button>
+                    </div>
+
+                    <button id="disconnectBtn" class="btn btn-danger" style="display: none;">
+                        ❌ Disconnect
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <div class="controls">
-          <div class="input-group">
-            <input 
-              id="peerIdInput" 
-              class="input-field" 
-              placeholder="Enter 5-digit friend's ID (e.g., 12345)"
-              autocomplete="off"
-              maxlength="5"
-              pattern="[0-9]*"
-              inputmode="numeric"
-            >
-          </div>
-          
-          <div class="btn-group">
-            <button id="connectBtn" class="btn btn-primary">
-              🔗 Connect as Viewer
-            </button>
-            <button id="shareBtn" class="btn btn-secondary">
-              📤 Start Sharing
-            </button>
-          </div>
-          
-          
-          <button id="disconnectBtn" class="btn btn-danger" style="display: none;">
-            ❌ Disconnect
-          </button>
+        <div class="video-container">
+            <div class="video-wrapper" id="videoWrapper">
+                <div class="video-overlay" id="videoOverlay">
+                    <div class="video-placeholder">📺</div>
+                    <p>Ready to connect and share</p>
+                </div>
+                <video id="video" autoplay playsinline></video>
+
+                <!-- Mobile Controls -->
+                <div class="mobile-controls" id="mobileControls">
+                    <button class="control-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Fullscreen">
+                        ⛶
+                    </button>
+                    <div class="volume-control">
+                        <button class="control-btn" id="muteBtn" onclick="toggleMute()" title="Mute/Unmute">
+                            🔊
+                        </button>
+                        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="100">
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
-    <div class="video-container">
-      <div class="video-wrapper">
-        <div class="video-overlay" id="videoOverlay">
-          <div class="video-placeholder">📺</div>
-          <p>Ready to connect and share</p>
-        </div>
-        <video id="video" autoplay playsinline muted></video>
-        <button class="fullscreen-btn" id="fullscreenBtn" onclick="toggleFullscreen()">⛶</button>
-      </div>
-      
-      <div class="audio-controls">
-        <button class="volume-btn" id="muteBtn" onclick="toggleMute()">🔊</button>
-        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="50">
-        <span class="volume-level" id="volumeLevel">50%</span>
-      </div>
-
-      <!-- Mobile Video Controls -->
-      <div class="mobile-video-controls" style="display: none;" id="mobileControls">
-        <button class="rotate-btn" id="horizontalBtn" onclick="toggleHorizontalView()">
-          📱 Horizontal View
-        </button>
-        <button class="rotate-btn" id="portraitFullBtn" onclick="togglePortraitFull()">
-          📺 Full Screen
-        </button>
-      </div>
+    <!-- Horizontal Mode -->
+    <div class="horizontal-mode" id="horizontalMode">
+        <video id="horizontalVideo" class="horizontal-video" autoplay playsinline></video>
     </div>
-  </div>
 
-  <!-- Horizontal Viewer Mode -->
-  <div class="horizontal-viewer" id="horizontalViewer" style="display: none;">
-    <div class="horizontal-header">
-      <div class="horizontal-title">📺 ShareScreen Pro - Horizontal View</div>
-      <button class="horizontal-close" onclick="exitHorizontalView()">✕ Exit</button>
-    </div>
-    <div class="horizontal-video-container">
-      <video id="horizontalVideo" autoplay playsinline></video>
-      <div class="horizontal-controls" id="horizontalControls">
-        <button class="volume-btn" id="horizontalMuteBtn" onclick="toggleHorizontalMute()">🔊</button>
-        <input type="range" id="horizontalVolumeSlider" class="volume-slider" min="0" max="100" value="50">
-        <button class="volume-btn" onclick="exitHorizontalView()">↩️</button>
-      </div>
-    </div>
-  </div>
+    <script>
+        const video = document.getElementById('video');
+        const horizontalVideo = document.getElementById('horizontalVideo');
+        const myIdEl = document.getElementById('myId');
+        const statusEl = document.getElementById('status');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const videoOverlay = document.getElementById('videoOverlay');
+        const connectBtn = document.getElementById('connectBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const peerIdInput = document.getElementById('peerIdInput');
+        const mobileControls = document.getElementById('mobileControls');
+        const horizontalMode = document.getElementById('horizontalMode');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const muteBtn = document.getElementById('muteBtn');
 
-  <!-- Orientation Hint -->
-  <div class="orientation-hint" id="orientationHint">
-    <div class="orientation-icon">📱</div>
-    <div class="orientation-text">For the best experience, please rotate your device to landscape mode</div>
-    <button class="skip-orientation" onclick="hideOrientationHint()">Continue Anyway</button>
-  </div>
+        let peer = null;
+        let myStream = null;
+        let currentCall = null;
+        let isConnected = false;
+        let connection = null;
+        let isHorizontalActive = false;
+        let controlsTimeout;
 
-  <script>
-    const video = document.getElementById('video');
-    const myIdEl = document.getElementById('myId');
-    const statusEl = document.getElementById('status');
-    const statusDot = document.getElementById('statusDot');
-    const statusText = document.getElementById('statusText');
-    const videoOverlay = document.getElementById('videoOverlay');
-    const connectBtn = document.getElementById('connectBtn');
-    const shareBtn = document.getElementById('shareBtn');
-    const disconnectBtn = document.getElementById('disconnectBtn');
-    const peerIdInput = document.getElementById('peerIdInput');
-    const volumeSlider = document.getElementById('volumeSlider');
-    const volumeLevel = document.getElementById('volumeLevel');
-    const muteBtn = document.getElementById('muteBtn');
-    const mobileControls = document.getElementById('mobileControls');
-    const horizontalViewer = document.getElementById('horizontalViewer');
-    const horizontalVideo = document.getElementById('horizontalVideo');
-    const horizontalVolumeSlider = document.getElementById('horizontalVolumeSlider');
-    const horizontalMuteBtn = document.getElementById('horizontalMuteBtn');
-    const orientationHint = document.getElementById('orientationHint');
-    
-    let peer = null;
-    let myStream = null;
-    let currentCall = null;
-    let isConnected = false;
-    let connection = null;
-    let isHorizontalMode = false;
-    let isPortraitFull = false;
+        // Initialize peer connection
+        function initializePeer() {
+            const simpleId = Math.floor(10000 + Math.random() * 90000).toString();
 
-    // Initialize peer connection with better configuration
-    function initializePeer() {
-      // Generate simple 5-digit numeric ID
-      const simpleId = Math.floor(10000 + Math.random() * 90000).toString();
-      
-      peer = new Peer(simpleId, {
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:global.stun.twilio.com:3478' },
-            { urls: 'stun:stun1.l.google.com:19302' }
-          ]
-        }
-      });
-
-      peer.on('open', id => {
-        console.log('Peer connected with ID:', id);
-        myIdEl.textContent = id;
-        updateStatus('connected', 'Ready to connect');
-        myIdEl.classList.remove('loading');
-        
-        // Store ID in localStorage for persistence
-        localStorage.setItem('sharescreen_peer_id', id);
-      });
-
-      peer.on('error', err => {
-        console.error('Peer error:', err);
-        
-        // If ID is taken, generate a new one
-        if (err.type === 'unavailable-id') {
-          console.log('ID taken, generating new one...');
-          initializePeer(); // Retry with new ID
-          return;
-        }
-        
-        showToast('Connection error: ' + err.message, 'error');
-        updateStatus('disconnected', 'Connection failed');
-      });
-
-      // Handle incoming calls
-      peer.on('call', call => {
-        console.log('Receiving incoming call');
-        call.answer(); // Answer without sending stream (viewer side)
-        currentCall = call;
-        
-        call.on('stream', remoteStream => {
-          console.log('Received remote stream, tracks:', remoteStream.getTracks().map(t => t.kind));
-          
-          // Force enable all tracks
-          remoteStream.getTracks().forEach(track => {
-            track.enabled = true;
-            console.log(`${track.kind} track enabled:`, track.enabled, 'state:', track.readyState);
-          });
-          
-          video.srcObject = remoteStream;
-          video.muted = false;
-          
-          // Force video to play
-          video.play().then(() => {
-            console.log('Video playback started successfully');
-            videoOverlay.style.display = 'none';
-            updateStatus('connected', 'Receiving stream');
-            isConnected = true;
-            toggleButtons(true);
-            showMobileControls();
-            showToast('Stream connected successfully!', 'success');
-          }).catch(e => {
-            console.error('Video play failed:', e);
-            // Try without audio if autoplay fails
-            video.muted = true;
-            video.play().then(() => {
-              console.log('Video playing muted');
-              videoOverlay.style.display = 'none';
-              updateStatus('connected', 'Receiving stream (muted)');
-              isConnected = true;
-              toggleButtons(true);
-              showToast('Stream connected (click to unmute)', 'success');
-            }).catch(e2 => {
-              console.error('Muted video play also failed:', e2);
-              showToast('Video playback failed - try clicking play', 'error');
+            peer = new Peer(simpleId, {
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:global.stun.twilio.com:3478' }
+                    ]
+                }
             });
-          });
 
-          // Monitor remote stream health
-          const monitorRemoteStream = () => {
-            if (remoteStream && remoteStream.active) {
-              const tracks = remoteStream.getTracks();
-              const activeTracks = tracks.filter(track => track.readyState === 'live');
-              console.log(`Stream health: ${activeTracks.length}/${tracks.length} tracks active`);
-              
-              if (activeTracks.length === 0) {
-                console.log('All remote tracks ended');
-                showToast('Stream ended by sharer', 'error');
-                disconnect();
-              }
-            }
-          };
-
-          // Check remote stream health every 3 seconds
-          const remoteHealthCheck = setInterval(monitorRemoteStream, 3000);
-          
-          // Store for cleanup
-          remoteStream.healthCheckInterval = remoteHealthCheck;
-          
-          // Handle remote stream ending
-          remoteStream.addEventListener('removetrack', (event) => {
-            console.log('Remote track removed:', event.track.kind);
-            if (remoteStream.getTracks().length === 0) {
-              clearInterval(remoteHealthCheck);
-              disconnect();
-            }
-          });
-        });
-
-        call.on('close', () => {
-          console.log('Call closed');
-          disconnect();
-        });
-
-        call.on('error', err => {
-          console.error('Call error:', err);
-          showToast('Call failed: ' + err.message, 'error');
-          disconnect();
-        });
-      });
-
-      // Handle incoming connections
-      peer.on('connection', conn => {
-        console.log('Incoming data connection from:', conn.peer);
-        connection = conn;
-        
-        conn.on('open', () => {
-          console.log('Data connection opened');
-        });
-
-        conn.on('data', (data) => {
-          console.log('Received data:', data);
-          
-          if (data.type === 'sharer_ping') {
-            console.log('Received ping from sharer');
-            // Respond that viewer is ready
-            conn.send({ type: 'viewer_ready', message: 'Viewer is ready to receive stream' });
-            showToast('Sharer is ready to start!', 'success');
-          } else if (data.type === 'stream_starting') {
-            updateStatus('connecting', 'Stream is starting...');
-            showToast('Receiving stream...', 'success');
-          }
-        });
-
-        conn.on('close', () => {
-          console.log('Data connection closed');
-          if (isConnected) {
-            disconnect();
-          }
-        });
-
-        conn.on('error', err => {
-          console.error('Data connection error:', err);
-        });
-      });
-    }
-
-    // Update connection status
-    function updateStatus(type, message) {
-      statusEl.className = `status-indicator status-${type}`;
-      statusText.textContent = message;
-      
-      switch(type) {
-        case 'connecting':
-          statusDot.textContent = '🟡';
-          break;
-        case 'connected':
-          statusDot.textContent = '🟢';
-          break;
-        case 'disconnected':
-          statusDot.textContent = '🔴';
-          break;
-      }
-    }
-
-    // Show toast notification
-    function showToast(message, type = 'success') {
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      toast.textContent = message;
-      document.body.appendChild(toast);
-      
-      setTimeout(() => toast.classList.add('show'), 100);
-      setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => {
-          if (document.body.contains(toast)) {
-            document.body.removeChild(toast);
-          }
-        }, 400);
-      }, 4000);
-    }
-
-    // Toggle button states
-    function toggleButtons(connected) {
-      connectBtn.style.display = connected ? 'none' : 'block';
-      shareBtn.style.display = connected ? 'none' : 'block';
-      disconnectBtn.style.display = connected ? 'block' : 'none';
-      peerIdInput.disabled = connected;
-    }
-
-    // Copy ID to clipboard
-    async function copyId() {
-      try {
-        await navigator.clipboard.writeText(myIdEl.textContent);
-        showToast('ID copied to clipboard!', 'success');
-        document.getElementById('copyBtn').textContent = '✅ Copied!';
-        setTimeout(() => {
-          document.getElementById('copyBtn').textContent = '📋 Copy ID';
-        }, 2000);
-      } catch (err) {
-        showToast('Failed to copy ID', 'error');
-      }
-    }
-
-    // Connect as viewer
-    connectBtn.onclick = () => {
-      const peerId = peerIdInput.value.trim();
-      if (!peerId) {
-        showToast('Please enter a connection ID', 'error');
-        peerIdInput.focus();
-        return;
-      }
-
-      console.log('Connecting to peer as viewer:', peerId);
-      updateStatus('connecting', 'Connecting to peer...');
-      
-      // Create connection first
-      connection = peer.connect(peerId);
-      
-      connection.on('open', () => {
-        console.log('Data connection established as viewer');
-        // Send a ready signal to the sharer
-        connection.send({ type: 'viewer_ready', message: 'Viewer is ready to receive stream' });
-        showToast('Connected! Ready to receive stream...', 'success');
-        updateStatus('connected', 'Connected - Ready for stream');
-        isConnected = true;
-        toggleButtons(true);
-      });
-
-      connection.on('data', (data) => {
-        console.log('Received data:', data);
-        if (data.type === 'stream_starting') {
-          updateStatus('connecting', 'Receiving stream...');
-          showToast('Stream is starting...', 'success');
-        }
-      });
-
-      connection.on('close', () => {
-        console.log('Data connection closed');
-        disconnect();
-      });
-
-      connection.on('error', err => {
-        console.error('Connection error:', err);
-        showToast('Failed to connect: ' + err.message, 'error');
-        updateStatus('disconnected', 'Connection failed');
-      });
-    };
-
-    // Start sharing
-    shareBtn.onclick = async () => {
-      const peerId = peerIdInput.value.trim();
-      if (!peerId) {
-        showToast('Please enter a connection ID', 'error');
-        peerIdInput.focus();
-        return;
-      }
-
-      try {
-        console.log('Attempting to start screen share to peer:', peerId);
-        updateStatus('connecting', 'Establishing connection...');
-        
-        // First establish data connection if not exists
-        if (!connection || connection._open !== true) {
-          connection = peer.connect(peerId);
-          
-          // Wait for connection to open
-          await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
-            
-            connection.on('open', () => {
-              clearTimeout(timeout);
-              console.log('Data connection established as sharer');
-              resolve();
+            peer.on('open', id => {
+                console.log('Peer connected with ID:', id);
+                myIdEl.textContent = id;
+                updateStatus('connected', 'Ready to connect');
             });
-            
-            connection.on('error', (err) => {
-              clearTimeout(timeout);
-              reject(err);
+
+            peer.on('error', err => {
+                console.error('Peer error:', err);
+                if (err.type === 'unavailable-id') {
+                    initializePeer();
+                    return;
+                }
+                showToast('Connection error: ' + err.message, 'error');
+                updateStatus('disconnected', 'Connection failed');
             });
-          });
-        }
 
-        // Check if viewer is ready
-        let viewerReady = false;
-        
-        // Listen for viewer ready signal
-        connection.on('data', (data) => {
-          console.log('Received data:', data);
-          if (data.type === 'viewer_ready') {
-            viewerReady = true;
-            console.log('Viewer confirmed ready');
-          } else if (data.type === 'keep_alive_response') {
-            console.log('Keep-alive response received');
-          }
-        });
+            peer.on('call', call => {
+                console.log('Receiving incoming call');
+                call.answer();
+                currentCall = call;
 
-        // Send ping to check if viewer is ready
-        connection.send({ type: 'sharer_ping', message: 'Sharer ready to start' });
-        
-        // Wait a moment for viewer response or proceed anyway
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        updateStatus('connecting', 'Starting screen capture...');
-        
-        // Request screen capture with audio
-        const constraints = {
-          video: {
-            cursor: 'always',
-            displaySurface: 'browser',
-            frameRate: { ideal: 30, max: 60 },
-            width: { ideal: 1920, max: 1920 },
-            height: { ideal: 1080, max: 1080 }
-          },
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-            suppressLocalAudioPlayback: true
-          }
-        };
+                call.on('stream', remoteStream => {
+                    console.log('Received remote stream');
 
-        myStream = await navigator.mediaDevices.getDisplayMedia(constraints);
-        console.log('Screen capture obtained, tracks:', myStream.getTracks().map(t => t.kind));
-        
-        // Force refresh the video tracks to ensure they're active
-        myStream.getVideoTracks().forEach(track => {
-          console.log('Video track state:', track.readyState, track.enabled);
-          track.enabled = true;
-        });
-        
-        // Notify viewer that stream is starting
-        if (connection && connection._open) {
-          connection.send({ type: 'stream_starting', message: 'Screen sharing is starting' });
-        }
-        
-        updateStatus('connecting', 'Calling peer...');
-        
-        // Small delay to ensure viewer is ready
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Call the peer with the stream
-        const call = peer.call(peerId, myStream);
-        currentCall = call;
-        
-        if (!call) {
-          throw new Error('Failed to initiate call - peer may not be ready');
-        }
-        
-        console.log('Call initiated successfully');
-        
-        // Show own stream locally (muted to prevent feedback)
-        video.srcObject = myStream;
-        video.muted = true;
-        videoOverlay.style.display = 'none';
-        
-        // Force video element to play
-        video.play().catch(e => console.log('Auto-play failed:', e));
-        
-        updateStatus('connected', 'Sharing screen');
-        isConnected = true;
-        toggleButtons(true);
-        showMobileControls();
-        showToast('Screen sharing started successfully!', 'success');
+                    // Force enable all tracks
+                    remoteStream.getTracks().forEach(track => {
+                        track.enabled = true;
+                    });
 
-        // Handle call events
-        call.on('stream', remoteStream => {
-          console.log('Received stream from peer (should not happen for sharer)');
-        });
+                    video.srcObject = remoteStream;
+                    horizontalVideo.srcObject = remoteStream;
 
-        call.on('close', () => {
-          console.log('Call closed by peer');
-          disconnect();
-          showToast('Viewer disconnected', 'error');
-        });
+                    // Set volume to 100% and unmuted by default
+                    video.volume = 1.0;
+                    video.muted = false;
+                    horizontalVideo.volume = 1.0;
+                    horizontalVideo.muted = false;
+                    volumeSlider.value = 100;
+                    updateMuteButton(1.0);
 
-        call.on('error', err => {
-          console.error('Call error:', err);
-          showToast('Call failed: ' + err.message, 'error');
-          disconnect();
-        });
+                    video.play().then(() => {
+                        console.log('Video playback started');
+                        videoOverlay.style.display = 'none';
+                        updateStatus('connected', 'Receiving stream');
+                        isConnected = true;
+                        toggleButtons(true);
+                        showMobileControls();
+                        showToast('Stream connected - Audio enabled!', 'success');
+                    }).catch(e => {
+                        console.error('Video play failed:', e);
+                        showToast('Click video to start playback', 'error');
+                    });
+                });
 
-        // Monitor stream health
-        const monitorStream = () => {
-          if (myStream && myStream.active) {
-            const videoTrack = myStream.getVideoTracks()[0];
-            if (videoTrack) {
-              console.log('Stream health check - Track state:', videoTrack.readyState, 'Active:', myStream.active);
-              
-              // If track becomes inactive, try to refresh
-              if (videoTrack.readyState === 'ended' || !myStream.active) {
-                console.log('Stream became inactive, attempting to refresh...');
-                showToast('Stream connection lost, attempting to reconnect...', 'error');
-                
-                // Try to restart the call with a fresh stream
-                setTimeout(async () => {
-                  try {
-                    const newStream = await navigator.mediaDevices.getDisplayMedia(constraints);
-                    if (currentCall) {
-                      // Replace the stream in the existing call
-                      const sender = currentCall.peerConnection.getSenders().find(s => 
-                        s.track && s.track.kind === 'video'
-                      );
-                      if (sender) {
-                        await sender.replaceTrack(newStream.getVideoTracks()[0]);
-                        myStream = newStream;
-                        video.srcObject = newStream;
-                        showToast('Stream reconnected successfully!', 'success');
-                      }
+                call.on('close', () => {
+                    console.log('Call closed');
+                    disconnect();
+                });
+
+                call.on('error', err => {
+                    console.error('Call error:', err);
+                    showToast('Call failed: ' + err.message, 'error');
+                    disconnect();
+                });
+            });
+
+            peer.on('connection', conn => {
+                console.log('Incoming connection');
+                connection = conn;
+
+                conn.on('open', () => {
+                    console.log('Data connection opened');
+                });
+
+                conn.on('data', (data) => {
+                    console.log('Received data:', data);
+                    if (data.type === 'stream_starting') {
+                        updateStatus('connecting', 'Stream starting...');
+                        showToast('Receiving stream...', 'success');
                     }
-                  } catch (e) {
-                    console.error('Failed to refresh stream:', e);
-                  }
-                }, 1000);
-              }
+                });
+
+                conn.on('close', () => {
+                    if (isConnected) disconnect();
+                });
+            });
+        }
+
+        // Update status
+        function updateStatus(type, message) {
+            statusEl.className = `status-indicator status-${type}`;
+            statusText.textContent = message;
+            statusDot.textContent = type === 'connecting' ? '🟡' : type === 'connected' ? '🟢' : '🔴';
+        }
+
+        // Show toast
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => document.body.removeChild(toast), 400);
+            }, 3000);
+        }
+
+        // Toggle buttons
+        function toggleButtons(connected) {
+            connectBtn.style.display = connected ? 'none' : 'block';
+            shareBtn.style.display = connected ? 'none' : 'block';
+            disconnectBtn.style.display = connected ? 'block' : 'none';
+            peerIdInput.disabled = connected;
+        }
+
+        // Copy ID
+        async function copyId() {
+            try {
+                await navigator.clipboard.writeText(myIdEl.textContent);
+                showToast('ID copied to clipboard!', 'success');
+                document.getElementById('copyBtn').textContent = '✅ Copied!';
+                setTimeout(() => {
+                    document.getElementById('copyBtn').textContent = '📋 Copy ID';
+                }, 2000);
+            } catch (err) {
+                showToast('Failed to copy ID', 'error');
             }
-          }
+        }
+
+        // Connect as viewer
+        connectBtn.onclick = () => {
+            const peerId = peerIdInput.value.trim();
+            if (!peerId) {
+                showToast('Please enter a connection ID', 'error');
+                return;
+            }
+
+            updateStatus('connecting', 'Connecting...');
+            connection = peer.connect(peerId);
+
+            connection.on('open', () => {
+                console.log('Connected as viewer');
+                connection.send({ type: 'viewer_ready' });
+                showToast('Connected! Ready to receive stream...', 'success');
+                updateStatus('connected', 'Connected - Ready for stream');
+                isConnected = true;
+                toggleButtons(true);
+            });
+
+            connection.on('error', err => {
+                console.error('Connection error:', err);
+                showToast('Failed to connect: ' + err.message, 'error');
+                updateStatus('disconnected', 'Connection failed');
+            });
         };
 
-        // Check stream health every 5 seconds
-        const healthCheckInterval = setInterval(monitorStream, 5000);
-
-        // Handle stream ending (user stops sharing)
-        myStream.getVideoTracks()[0].addEventListener('ended', () => {
-          console.log('Screen sharing ended by user');
-          clearInterval(healthCheckInterval);
-          disconnect();
-          showToast('Screen sharing stopped', 'success');
-        });
-
-        // Handle audio track ending
-        const audioTrack = myStream.getAudioTracks()[0];
-        if (audioTrack) {
-          audioTrack.addEventListener('ended', () => {
-            console.log('Audio sharing ended');
-          });
-        }
-
-        // Store the health check interval for cleanup
-        myStream.healthCheckInterval = healthCheckInterval;
-
-      } catch (err) {
-        console.error('Screen share error:', err);
-        let errorMessage = 'Screen sharing failed';
-        
-        if (err.name === 'NotAllowedError') {
-          errorMessage = 'Screen sharing permission denied';
-        } else if (err.name === 'NotSupportedError') {
-          errorMessage = 'Screen sharing not supported in this browser';
-        } else if (err.message.includes('timeout')) {
-          errorMessage = 'Connection timeout - make sure viewer is connected first';
-        } else if (err.message.includes('not be ready')) {
-          errorMessage = 'Viewer not ready - ask them to connect first';
-        } else if (err.message) {
-          errorMessage = err.message;
-        }
-        
-        showToast(errorMessage, 'error');
-        updateStatus('disconnected', 'Sharing failed');
-        
-        // Cleanup on error
-        if (myStream) {
-          myStream.getTracks().forEach(track => track.stop());
-          myStream = null;
-        }
-      }
-    };
-
-    // Disconnect function
-    function disconnect() {
-      console.log('Disconnecting...');
-      
-      if (currentCall) {
-        currentCall.close();
-        currentCall = null;
-      }
-      
-      if (connection) {
-        connection.close();
-        connection = null;
-      }
-      
-      if (myStream) {
-        // Clear health check interval
-        if (myStream.healthCheckInterval) {
-          clearInterval(myStream.healthCheckInterval);
-        }
-        
-        myStream.getTracks().forEach(track => {
-          track.stop();
-          console.log('Stopped track:', track.kind);
-        });
-        myStream = null;
-      }
-      
-      // Clear remote stream health check if exists
-      if (video.srcObject && video.srcObject.healthCheckInterval) {
-        clearInterval(video.srcObject.healthCheckInterval);
-      }
-      
-      video.srcObject = null;
-      video.muted = true;
-      videoOverlay.style.display = 'flex';
-      updateStatus('connected', 'Ready to connect');
-      isConnected = false;
-      toggleButtons(false);
-      hideMobileControls();
-      
-      // Exit any mobile viewing modes
-      if (isHorizontalMode) {
-        exitHorizontalView();
-      }
-      if (isPortraitFull) {
-        exitPortraitFull();
-      }
-    }
-
-    // Disconnect button handler
-    disconnectBtn.onclick = () => {
-      disconnect();
-      showToast('Disconnected successfully', 'success');
-    };
-
-    // Volume controls
-    volumeSlider.oninput = () => {
-      const volume = volumeSlider.value / 100;
-      video.volume = volume;
-      volumeLevel.textContent = Math.round(volume * 100) + '%';
-      
-      updateMuteButton(volume);
-    };
-
-    function updateMuteButton(volume) {
-      if (video.muted || volume === 0) {
-        muteBtn.textContent = '🔇';
-      } else if (volume < 0.3) {
-        muteBtn.textContent = '🔉';
-      } else if (volume < 0.7) {
-        muteBtn.textContent = '🔊';
-      } else {
-        muteBtn.textContent = '📢';
-      }
-    }
-
-    // Mute/unmute toggle
-    function toggleMute() {
-      if (video.muted) {
-        video.muted = false;
-        volumeSlider.disabled = false;
-        volumeSlider.style.opacity = '1';
-        showToast('Audio unmuted', 'success');
-      } else {
-        video.muted = true;
-        volumeSlider.disabled = true;
-        volumeSlider.style.opacity = '0.5';
-        showToast('Audio muted', 'success');
-      }
-      updateMuteButton(video.volume);
-    }
-
-    // Fullscreen functionality
-    function toggleFullscreen() {
-      const videoWrapper = document.querySelector('.video-wrapper');
-      
-      if (!document.fullscreenElement) {
-        videoWrapper.requestFullscreen().then(() => {
-          showToast('Entered fullscreen mode', 'success');
-        }).catch(err => {
-          showToast('Fullscreen failed: ' + err.message, 'error');
-        });
-      } else {
-        document.exitFullscreen().then(() => {
-          showToast('Exited fullscreen mode', 'success');
-        });
-      }
-    }
-
-    // Handle fullscreen changes
-    document.addEventListener('fullscreenchange', () => {
-      const fullscreenBtn = document.getElementById('fullscreenBtn');
-      if (document.fullscreenElement) {
-        fullscreenBtn.textContent = '⛶';
-        fullscreenBtn.style.background = 'rgba(0, 0, 0, 0.9)';
-      } else {
-        fullscreenBtn.textContent = '⛶';
-        fullscreenBtn.style.background = 'rgba(0, 0, 0, 0.8)';
-      }
-    });
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      // F11 for fullscreen
-      if (e.key === 'F11') {
-        e.preventDefault();
-        toggleFullscreen();
-      }
-      
-      // Space for mute/unmute
-      if (e.code === 'Space' && e.target === document.body) {
-        e.preventDefault();
-        toggleMute();
-      }
-      
-      // Escape to disconnect
-      if (e.key === 'Escape' && isConnected) {
-        disconnect();
-        showToast('Disconnected via keyboard shortcut', 'success');
-      }
-    });
-
-    // Handle page visibility for mobile optimization
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden' && myStream) {
-        console.log('Page hidden, keeping video tracks enabled for sharing');
-        // Don't disable tracks when sharing - this was causing the YouTube issue
-        // myStream.getVideoTracks().forEach(track => track.enabled = false);
-      } else if (document.visibilityState === 'visible' && myStream) {
-        console.log('Page visible, ensuring video tracks are enabled');
-        myStream.getVideoTracks().forEach(track => track.enabled = true);
-      }
-    });
-
-    // Add click handler to video for manual play (fixes autoplay issues)
-    video.addEventListener('click', () => {
-      if (video.paused) {
-        video.play().then(() => {
-          showToast('Video playback resumed', 'success');
-        }).catch(e => {
-          console.error('Manual play failed:', e);
-          showToast('Video play failed: ' + e.message, 'error');
-        });
-      }
-    });
-
-    // Mobile-specific functions
-    function showMobileControls() {
-      if (window.innerWidth <= 768) {
-        mobileControls.style.display = 'flex';
-      }
-    }
-
-    function hideMobileControls() {
-      mobileControls.style.display = 'none';
-    }
-
-    // Horizontal view functions
-    function toggleHorizontalView() {
-      if (!isConnected) {
-        showToast('No active stream to view horizontally', 'error');
-        return;
-      }
-
-      if (!isHorizontalMode) {
-        enterHorizontalView();
-      } else {
-        exitHorizontalView();
-      }
-    }
-
-    function enterHorizontalView() {
-      isHorizontalMode = true;
-      horizontalViewer.style.display = 'flex';
-      
-      // Copy stream to horizontal video
-      horizontalVideo.srcObject = video.srcObject;
-      horizontalVideo.muted = video.muted;
-      horizontalVideo.volume = video.volume;
-      
-      // Sync volume controls
-      horizontalVolumeSlider.value = volumeSlider.value;
-      updateHorizontalMuteButton(video.volume);
-      
-      // Show orientation hint on mobile portrait
-      if (window.innerWidth <= 768 && window.innerHeight > window.innerWidth) {
-        orientationHint.classList.add('show');
-      }
-      
-      // Update button text
-      document.getElementById('horizontalBtn').textContent = '↩️ Exit Horizontal';
-      document.getElementById('horizontalBtn').classList.add('active');
-      
-      showToast('Entered horizontal view', 'success');
-    }
-
-    function exitHorizontalView() {
-      isHorizontalMode = false;
-      horizontalViewer.style.display = 'none';
-      orientationHint.classList.remove('show');
-      
-      // Update button text
-      document.getElementById('horizontalBtn').textContent = '📱 Horizontal View';
-      document.getElementById('horizontalBtn').classList.remove('active');
-      
-      showToast('Exited horizontal view', 'success');
-    }
-
-    function hideOrientationHint() {
-      orientationHint.classList.remove('show');
-    }
-
-    // Portrait fullscreen functions
-    function togglePortraitFull() {
-      if (!isConnected) {
-        showToast('No active stream to view fullscreen', 'error');
-        return;
-      }
-
-      if (!isPortraitFull) {
-        enterPortraitFull();
-      } else {
-        exitPortraitFull();
-      }
-    }
-
-    function enterPortraitFull() {
-      isPortraitFull = true;
-      const videoWrapper = document.querySelector('.video-wrapper');
-      videoWrapper.classList.add('portrait-fullscreen');
-      
-      // Update button text
-      document.getElementById('portraitFullBtn').textContent = '↩️ Exit Full';
-      document.getElementById('portraitFullBtn').classList.add('active');
-      
-      // Add portrait controls
-      if (!document.querySelector('.portrait-controls')) {
-        const portraitControls = document.createElement('div');
-        portraitControls.className = 'portrait-controls';
-        portraitControls.innerHTML = `
-          <button class="volume-btn" onclick="toggleMute()">🔊</button>
-          <button class="volume-btn" onclick="exitPortraitFull()">↩️</button>
-        `;
-        videoWrapper.appendChild(portraitControls);
-        
-        // Show controls on tap
-        videoWrapper.addEventListener('click', () => {
-          portraitControls.classList.toggle('visible');
-          setTimeout(() => portraitControls.classList.remove('visible'), 3000);
-        });
-      }
-      
-      showToast('Entered portrait fullscreen', 'success');
-    }
-
-    function exitPortraitFull() {
-      isPortraitFull = false;
-      const videoWrapper = document.querySelector('.video-wrapper');
-      videoWrapper.classList.remove('portrait-fullscreen');
-      
-      // Remove portrait controls
-      const portraitControls = document.querySelector('.portrait-controls');
-      if (portraitControls) {
-        portraitControls.remove();
-      }
-      
-      // Update button text
-      document.getElementById('portraitFullBtn').textContent = '📺 Full Screen';
-      document.getElementById('portraitFullBtn').classList.remove('active');
-      
-      showToast('Exited portrait fullscreen', 'success');
-    }
-
-    // Horizontal video controls
-    function toggleHorizontalMute() {
-      if (horizontalVideo.muted) {
-        horizontalVideo.muted = false;
-        video.muted = false;
-        horizontalVolumeSlider.disabled = false;
-        volumeSlider.disabled = false;
-      } else {
-        horizontalVideo.muted = true;
-        video.muted = true;
-        horizontalVolumeSlider.disabled = true;
-        volumeSlider.disabled = true;
-      }
-      updateHorizontalMuteButton(horizontalVideo.volume);
-      updateMuteButton(video.volume);
-    }
-
-    function updateHorizontalMuteButton(volume) {
-      if (horizontalVideo.muted || volume === 0) {
-        horizontalMuteBtn.textContent = '🔇';
-      } else if (volume < 0.3) {
-        horizontalMuteBtn.textContent = '🔉';
-      } else if (volume < 0.7) {
-        horizontalMuteBtn.textContent = '🔊';
-      } else {
-        horizontalMuteBtn.textContent = '📢';
-      }
-    }
-
-    // Sync horizontal volume slider
-    horizontalVolumeSlider.oninput = () => {
-      const volume = horizontalVolumeSlider.value / 100;
-      horizontalVideo.volume = volume;
-      video.volume = volume;
-      volumeSlider.value = horizontalVolumeSlider.value;
-      volumeLevel.textContent = Math.round(volume * 100) + '%';
-      
-      updateHorizontalMuteButton(volume);
-      updateMuteButton(volume);
-    };
-
-    // Handle orientation changes
-    function handleOrientationChange() {
-      setTimeout(() => {
-        // Auto-adjust video dimensions after orientation change
-        if (video.srcObject) {
-          video.style.height = 'auto';
-          video.style.width = '100%';
-        }
-        
-        // Hide orientation hint in landscape
-        if (window.innerWidth > window.innerHeight) {
-          hideOrientationHint();
-        }
-        
-        // Show/hide mobile controls based on screen size
-        if (isConnected && window.innerWidth <= 768) {
-          showMobileControls();
-        } else {
-          hideMobileControls();
-        }
-      }, 500);
-    }
-
-    // Touch gestures for mobile
-    let touchStartX = 0;
-    let touchStartY = 0;
-
-    video.addEventListener('touchstart', (e) => {
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-    }, { passive: true });
-
-    video.addEventListener('touchend', (e) => {
-      const touchEndX = e.changedTouches[0].clientX;
-      const touchEndY = e.changedTouches[0].clientY;
-      const deltaX = touchEndX - touchStartX;
-      const deltaY = touchEndY - touchStartY;
-      
-      // Swipe gestures (minimum 50px)
-      if (Math.abs(deltaX) > 50 || Math.abs(deltaY) > 50) {
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
-          // Horizontal swipe
-          if (deltaX > 0) {
-            // Swipe right - enter horizontal view
-            if (isConnected && !isHorizontalMode) {
-              toggleHorizontalView();
+        // Start sharing
+        shareBtn.onclick = async () => {
+            const peerId = peerIdInput.value.trim();
+            if (!peerId) {
+                showToast('Please enter a connection ID', 'error');
+                return;
             }
-          } else {
-            // Swipe left - exit horizontal view
-            if (isHorizontalMode) {
-              exitHorizontalView();
-            }
-          }
-        } else {
-          // Vertical swipe
-          if (deltaY < 0) {
-            // Swipe up - enter fullscreen
-            if (isConnected && !isPortraitFull) {
-              togglePortraitFull();
-            }
-          } else {
-            // Swipe down - exit fullscreen
-            if (isPortraitFull) {
-              exitPortraitFull();
-            }
-          }
-        }
-      }
-    }, { passive: true });
 
-    // Handle connection loss
-    window.addEventListener('online', () => {
-      if (peer && peer.disconnected) {
-        showToast('Connection restored, reconnecting...', 'success');
-        peer.reconnect();
-      }
-    });
+            try {
+                updateStatus('connecting', 'Starting screen capture...');
 
-    window.addEventListener('offline', () => {
-      showToast('Connection lost', 'error');
-      updateStatus('disconnected', 'No internet connection');
-    });
+                const constraints = {
+                    video: {
+                        cursor: 'always',
+                        frameRate: { ideal: 30, max: 60 },
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    },
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                };
 
-    // Initialize everything when page loads
-    window.addEventListener('load', () => {
-      console.log('Page loaded, initializing peer connection');
-      initializePeer();
-      
-      // Set initial volume
-      video.volume = 0.5;
-      updateMuteButton(0.5);
-      
-      // Handle mobile orientation changes
-      window.addEventListener('orientationchange', handleOrientationChange);
-      
-      // Initial mobile controls check
-      if (window.innerWidth <= 768) {
-        // Mobile device detected
-        console.log('Mobile device detected');
-        
-        // Add resize listener for dynamic mobile control visibility
-        window.addEventListener('resize', () => {
-          if (isConnected && window.innerWidth <= 768) {
-            showMobileControls();
-          } else {
+                myStream = await navigator.mediaDevices.getDisplayMedia(constraints);
+
+                if (!connection) {
+                    connection = peer.connect(peerId);
+                    await new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
+                        connection.on('open', () => {
+                            clearTimeout(timeout);
+                            resolve();
+                        });
+                        connection.on('error', reject);
+                    });
+                }
+
+                connection.send({ type: 'stream_starting' });
+
+                const call = peer.call(peerId, myStream);
+                currentCall = call;
+
+                video.srcObject = myStream;
+                video.muted = true; // Prevent feedback for sharer
+                videoOverlay.style.display = 'none';
+                video.play();
+
+                updateStatus('connected', 'Sharing screen');
+                isConnected = true;
+                toggleButtons(true);
+                showMobileControls();
+                showToast('Screen sharing started!', 'success');
+
+                call.on('close', () => {
+                    disconnect();
+                    showToast('Viewer disconnected', 'error');
+                });
+
+                myStream.getVideoTracks()[0].addEventListener('ended', () => {
+                    disconnect();
+                    showToast('Screen sharing stopped', 'success');
+                });
+
+            } catch (err) {
+                console.error('Screen share error:', err);
+                let errorMessage = 'Screen sharing failed';
+                if (err.name === 'NotAllowedError') {
+                    errorMessage = 'Screen sharing permission denied';
+                }
+                showToast(errorMessage, 'error');
+                updateStatus('disconnected', 'Sharing failed');
+            }
+        };
+
+        // Disconnect
+        function disconnect() {
+            if (currentCall) {
+                currentCall.close();
+                currentCall = null;
+            }
+            if (connection) {
+                connection.close();
+                connection = null;
+            }
+            if (myStream) {
+                myStream.getTracks().forEach(track => track.stop());
+                myStream = null;
+            }
+
+            video.srcObject = null;
+            horizontalVideo.srcObject = null;
+            videoOverlay.style.display = 'flex';
+            updateStatus('connected', 'Ready to connect');
+            isConnected = false;
+            toggleButtons(false);
             hideMobileControls();
-          }
-        });
-      }
 
-      // Add touch support for mobile
-      let touchStartY = 0;
-      document.addEventListener('touchstart', (e) => {
-        touchStartY = e.touches[0].clientY;
-      }, { passive: true });
-
-      document.addEventListener('touchmove', (e) => {
-        const touchY = e.touches[0].clientY;
-        const touchDiff = touchStartY - touchY;
-
-        // Prevent pull-to-refresh on mobile
-        if (touchDiff < 0 && window.scrollY === 0) {
-          e.preventDefault();
+            if (isHorizontalActive) {
+                toggleHorizontal();
+            }
         }
-      }, { passive: false });
 
-      console.log('Initialization complete');
-    });
+        disconnectBtn.onclick = () => {
+            disconnect();
+            showToast('Disconnected successfully', 'success');
+        };
 
-    // Error handling for unhandled promise rejections
-    window.addEventListener('unhandledrejection', (event) => {
-      console.error('Unhandled promise rejection:', event.reason);
-      showToast('An unexpected error occurred', 'error');
-    });
+        // Volume controls
+        volumeSlider.oninput = () => {
+            const volume = volumeSlider.value / 100;
+            video.volume = volume;
+            horizontalVideo.volume = volume;
+            updateMuteButton(volume);
+        };
 
-    // Service worker registration for PWA capabilities
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then((registration) => {
-            console.log('SW registered: ', registration);
-          })
-          .catch((registrationError) => {
-            console.log('SW registration failed: ', registrationError);
-          });
-      });
-    }
-  </script>
+        function updateMuteButton(volume) {
+            if (video.muted || volume === 0) {
+                muteBtn.textContent = '🔈';
+            } else {
+                muteBtn.textContent = '🔊';
+            }
+        }
+
+        function toggleMute() {
+            const isMuted = !video.muted;
+            video.muted = isMuted;
+            horizontalVideo.muted = isMuted;
+            updateMuteButton(video.volume);
+            showToast(isMuted ? 'Audio muted' : 'Audio unmuted', 'success');
+        }
+
+        // Fullscreen
+        function toggleFullscreen() {
+            const element = isHorizontalActive ? horizontalMode : document.querySelector('.video-wrapper');
+
+            if (!document.fullscreenElement) {
+                element.requestFullscreen().then(() => {
+                    showToast('Entered fullscreen mode', 'success');
+                }).catch(err => {
+                    showToast('Fullscreen failed', 'error');
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    showToast('Exited fullscreen mode', 'success');
+                });
+            }
+        }
+
+        // Horizontal mode
+        function toggleHorizontal() {
+            if (!isConnected) {
+                showToast('No active stream', 'error');
+                return;
+            }
+
+            isHorizontalActive = !isHorizontalActive;
+
+            if (isHorizontalActive) {
+                horizontalMode.classList.add('active');
+                horizontalVideo.play();
+                document.getElementById('horizontalBtn').classList.add('active');
+                showToast('Horizontal mode enabled', 'success');
+
+                // Hide mobile controls in horizontal mode for clean view
+                mobileControls.style.display = 'none';
+            } else {
+                horizontalMode.classList.remove('active');
+                document.getElementById('horizontalBtn').classList.remove('active');
+                showToast('Horizontal mode disabled', 'success');
+
+                // Show mobile controls again
+                showMobileControls();
+            }
+        }
+
+        // Mobile controls visibility
+        function showMobileControls() {
+            if (window.innerWidth <= 768 && isConnected && !isHorizontalActive) {
+                mobileControls.style.display = 'flex';
+                // Auto-hide after 3 seconds
+                clearTimeout(controlsTimeout);
+                mobileControls.classList.add('show');
+                controlsTimeout = setTimeout(() => {
+                    mobileControls.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        function hideMobileControls() {
+            mobileControls.style.display = 'none';
+            mobileControls.classList.remove('show');
+        }
+
+        // Show controls on video interaction
+        const videoWrapper = document.getElementById('videoWrapper');
+        videoWrapper.addEventListener('click', () => {
+            if (isConnected && !isHorizontalActive) {
+                showMobileControls();
+            }
+        });
+
+        videoWrapper.addEventListener('touchstart', () => {
+            if (isConnected && !isHorizontalActive) {
+                showMobileControls();
+            }
+        });
+
+        // Handle orientation changes
+        function handleOrientationChange() {
+            setTimeout(() => {
+                if (isConnected && window.innerWidth <= 768) {
+                    showMobileControls();
+                } else if (window.innerWidth > 768) {
+                    hideMobileControls();
+                }
+            }, 500);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F11') {
+                e.preventDefault();
+                toggleFullscreen();
+            }
+            if (e.code === 'Space' && e.target === document.body) {
+                e.preventDefault();
+                toggleMute();
+            }
+            if (e.key === 'Escape') {
+                if (isHorizontalActive) {
+                    toggleHorizontal();
+                } else if (isConnected) {
+                    disconnect();
+                }
+            }
+        });
+
+        // Handle click on video to resume playback
+        video.addEventListener('click', () => {
+            if (video.paused) {
+                video.play().then(() => {
+                    showToast('Video playback resumed', 'success');
+                }).catch(e => {
+                    showToast('Playback failed', 'error');
+                });
+            }
+        });
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            console.log('Initializing ShareScreen Pro');
+            initializePeer();
+
+            // Set initial volume to 100%
+            video.volume = 1.0;
+            volumeSlider.value = 100;
+            updateMuteButton(1.0);
+
+            // Handle orientation changes
+            window.addEventListener('orientationchange', handleOrientationChange);
+            window.addEventListener('resize', handleOrientationChange);
+        });
+
+        // Handle connection loss
+        window.addEventListener('online', () => {
+            if (peer && peer.disconnected) {
+                showToast('Reconnecting...', 'success');
+                peer.reconnect();
+            }
+        });
+
+        window.addEventListener('offline', () => {
+            showToast('Connection lost', 'error');
+            updateStatus('disconnected', 'No internet connection');
+        });
+
+        // Prevent zoom on iOS
+        document.addEventListener('touchmove', function (event) {
+            if (event.scale && event.scale !== 1) {
+                event.preventDefault(); // block pinch zoom only
+            }
+        }, { passive: false });
+
+
+        // Handle double-tap zoom prevention
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
 </body>
+
 </html>

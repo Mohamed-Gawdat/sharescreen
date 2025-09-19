@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <title>ShareScreen</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
@@ -39,16 +39,14 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            /* background: linear-gradient(135deg, var(--dark) 0%, var(--dark-light) 100%); */
             background-image: radial-gradient(circle, #190621, #1b0a24, #1d0d26, #1f1029, #22122c, #22122c, #22122c, #22122c, #1f1029, #1d0d26, #1b0a24, #190621);
             color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
         }
 
-
-
         .container {
+            
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
@@ -64,7 +62,6 @@
         }
 
         .logo {
-
             font-family: "Dancing Script", cursive;
             font-optical-sizing: auto;
             font-size: clamp(2rem, 5vw, 3.5rem);
@@ -89,6 +86,62 @@
             border-radius: 20px;
             padding: 2rem;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .warning {
+            display: flex;
+        }
+        .warning p {
+            color: var(--primary);
+            font-weight: 400;
+        }
+        
+        /* Mode Selection Styles */
+        .mode-selection {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .mode-option {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(6, 214, 160, 0.1));
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.2);
+        }
+
+        .mode-option.selected {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(6, 214, 160, 0.2));
+        }
+
+        .mode-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .mode-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .mode-description {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.5;
         }
 
         .info-section {
@@ -120,17 +173,43 @@
             word-break: break-all;
         }
 
+        .room-link {
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 1rem;
+            color: var(--secondary);
+            background: rgba(6, 214, 160, 0.1);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            word-break: break-all;
+            border: 1px solid rgba(6, 214, 160, 0.3);
+        }
+
+        .viewer-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, rgba(6, 214, 160, 0.15), rgba(5, 160, 133, 0.15));
+            border: 1px solid rgba(6, 214, 160, 0.3);
+            padding: 0.75rem 1.25rem;
+            border-radius: 50px;
+            font-weight: 600;
+            color: var(--secondary);
+            margin-top: 1rem;
+        }
+
         .copy-btn {
             background: linear-gradient(135deg, var(--primary), var(--primary-hover));
             color: white;
             border: none;
-            padding: 0.8rem 1.8rem;
+            padding: 0.2rem .4rem;
             border-radius: 12px;
             cursor: pointer;
             font-size: 1rem;
             font-weight: 600;
             transition: all 0.3s ease;
             min-height: 44px;
+            margin: 0 0.5rem;
         }
 
         .copy-btn:hover {
@@ -366,28 +445,9 @@
             cursor: pointer;
         }
 
-        /* Horizontal Mode - Full Clean Screen */
-        .horizontal-mode {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 1000;
-            background: black;
+        /* Hide elements */
+        .hidden {
             display: none;
-        }
-
-        .horizontal-mode.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .horizontal-video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
         }
 
         /* Toast Notifications */
@@ -439,6 +499,18 @@
                 font-size: 1rem;
             }
 
+            .mode-option {
+                padding: 1.5rem;
+            }
+
+            .mode-icon {
+                font-size: 2.5rem;
+            }
+
+            .mode-title {
+                font-size: 1.3rem;
+            }
+
             .btn-group {
                 grid-template-columns: 1fr;
                 gap: 1rem;
@@ -466,6 +538,10 @@
                 font-size: 1.2rem;
             }
 
+            .room-link {
+                font-size: 0.9rem;
+            }
+
             .toast {
                 top: 20px;
                 right: 20px;
@@ -489,6 +565,14 @@
             }
 
             .logo {
+                font-size: 2rem;
+            }
+
+            .mode-option {
+                padding: 1.2rem;
+            }
+
+            .mode-icon {
                 font-size: 2rem;
             }
 
@@ -524,8 +608,8 @@
         /* Landscape Mode for Mobile */
         @media (max-width: 768px) and (orientation: landscape) {
             body {
-            overflow-y: auto;   /* allow vertical scrolling */
-            overflow-x: hidden; /* prevent sideways scrolling */
+                overflow-y: auto;
+                overflow-x: hidden;
             }
 
             .container {
@@ -536,7 +620,7 @@
             }
 
             .controls-section {
-                flex: 0 0 280px;
+                flex: 0 0 300px;
                 overflow-y: auto;
             }
 
@@ -594,37 +678,85 @@
 
         <div class="controls-section">
             <div class="glass-card">
-                <div class="info-section">
-                    <div class="id-display">
-                        <div class="id-label">Your Connection ID</div>
-                        <div class="id-value" id="myId">Generating ID...</div>
-                        <button class="copy-btn" id="copyBtn" onclick="copyId()">📋 Copy ID</button>
+                <!-- Mode Selection -->
+                <div id="modeSelection" class="mode-selection">
+                    <div class="mode-option" id="createRoomOption" onclick="selectMode('create')">
+                        <div class="warning">
+                            <p>Computers only</p>
+                        </div>
+                        <span class="mode-icon">🏠</span>
+                        <div class="mode-title">Create Room</div>
+                        <div class="mode-description">Start a new room and share your screen with others</div>
                     </div>
-                    <div class="status-indicator status-connecting" id="status">
-                        <span id="statusDot">🟡</span>
-                        <span id="statusText">Connecting to network...</span>
+                    <div class="mode-option" id="joinRoomOption" onclick="selectMode('join')">
+                        <span class="mode-icon">🔗</span>
+                        <div class="mode-title">Join Room</div>
+                        <div class="mode-description">Connect to an existing room to view shared screen</div>
                     </div>
                 </div>
 
-                <div class="controls">
-                    <div class="input-group">
-                        <input id="peerIdInput" class="input-field"
-                            placeholder="Enter friend's 5-digit ID" autocomplete="off" maxlength="5"
-                            pattern="[0-9]*" inputmode="numeric">
+                <!-- Create Room Interface -->
+                <div id="createRoomInterface" class="hidden">
+                    <div class="info-section">
+                        <div class="id-display">
+                            <div class="id-label">Room ID</div>
+                            <div class="id-value" id="roomId">Generating...</div>
+                            <div class="room-link" id="roomLink">Room link generating...</div>
+                            <div>
+                                <button class="copy-btn" onclick="copyRoomId()">📋 Copy ID</button>
+                                <button class="copy-btn" onclick="copyRoomLink()">🔗 Copy Link</button>
+                            </div>
+                            <div class="viewer-count" id="viewerCount">
+                                <span>👥</span>
+                                <span id="viewerNumber">0</span>
+                                <span>viewers watching</span>
+                            </div>
+                        </div>
+                        <div class="status-indicator status-connecting" id="status">
+                            <span id="statusDot">🟡</span>
+                            <span id="statusText">Connecting to network...</span>
+                        </div>
                     </div>
 
-                    <div class="btn-group">
-                        <button id="connectBtn" class="btn btn-primary">
-                            🔗 Connect as Viewer
+                    <div class="controls">
+                        <button id="startSharingBtn" class="btn btn-secondary">
+                            Start Screen Sharing
                         </button>
-                        <button id="shareBtn" class="btn btn-secondary">
-                            📤 Start Sharing
+                        <button id="stopSharingBtn" class="btn btn-danger hidden">
+                            Stop Sharing
+                        </button>
+                        <button id="backToModeBtn" class="btn btn-primary" onclick="backToModeSelection()">
+                            Back to Options
                         </button>
                     </div>
+                </div>
 
-                    <button id="disconnectBtn" class="btn btn-danger" style="display: none;">
-                        ❌ Disconnect
-                    </button>
+                <!-- Join Room Interface -->
+                <div id="joinRoomInterface" class="hidden">
+                    <div class="info-section">
+                        <div class="status-indicator status-connecting" id="joinStatus">
+                            <span id="joinStatusDot">🟡</span>
+                            <span id="joinStatusText">Ready to join room</span>
+                        </div>
+                    </div>
+
+                    <div class="controls">
+                        <div class="input-group">
+                            <input id="roomIdInput" class="input-field"
+                                placeholder="Enter 5-digit Room ID" autocomplete="off" maxlength="5"
+                                pattern="[0-9]*" inputmode="numeric">
+                        </div>
+
+                        <button id="joinRoomBtn" class="btn btn-primary">
+                            Join Room
+                        </button>
+                        <button id="leaveRoomBtn" class="btn btn-danger hidden">
+                            Leave Room
+                        </button>
+                        <button id="backToModeBtn2" class="btn btn-secondary" onclick="backToModeSelection()">
+                            Back to Options
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -653,40 +785,115 @@
         </div>
     </div>
 
-    <!-- Horizontal Mode -->
-    <div class="horizontal-mode" id="horizontalMode">
-        <video id="horizontalVideo" class="horizontal-video" autoplay playsinline></video>
-    </div>
-
     <script>
         const video = document.getElementById('video');
-        const horizontalVideo = document.getElementById('horizontalVideo');
-        const myIdEl = document.getElementById('myId');
-        const statusEl = document.getElementById('status');
-        const statusDot = document.getElementById('statusDot');
-        const statusText = document.getElementById('statusText');
         const videoOverlay = document.getElementById('videoOverlay');
-        const connectBtn = document.getElementById('connectBtn');
-        const shareBtn = document.getElementById('shareBtn');
-        const disconnectBtn = document.getElementById('disconnectBtn');
-        const peerIdInput = document.getElementById('peerIdInput');
         const mobileControls = document.getElementById('mobileControls');
-        const horizontalMode = document.getElementById('horizontalMode');
         const volumeSlider = document.getElementById('volumeSlider');
         const muteBtn = document.getElementById('muteBtn');
+
+        // Mode selection elements
+        const modeSelection = document.getElementById('modeSelection');
+        const createRoomInterface = document.getElementById('createRoomInterface');
+        const joinRoomInterface = document.getElementById('joinRoomInterface');
+
+        // Room creation elements
+        const roomId = document.getElementById('roomId');
+        const roomLink = document.getElementById('roomLink');
+        const viewerCount = document.getElementById('viewerCount');
+        const viewerNumber = document.getElementById('viewerNumber');
+        const status = document.getElementById('status');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const startSharingBtn = document.getElementById('startSharingBtn');
+        const stopSharingBtn = document.getElementById('stopSharingBtn');
+
+        // Room joining elements
+        const roomIdInput = document.getElementById('roomIdInput');
+        const joinRoomBtn = document.getElementById('joinRoomBtn');
+        const leaveRoomBtn = document.getElementById('leaveRoomBtn');
+        const joinStatus = document.getElementById('joinStatus');
+        const joinStatusDot = document.getElementById('joinStatusDot');
+        const joinStatusText = document.getElementById('joinStatusText');
 
         let peer = null;
         let myStream = null;
         let currentCall = null;
         let isConnected = false;
-        let connection = null;
-        let isHorizontalActive = false;
+        let connections = new Map(); // Store multiple connections for room owner
+        let viewerCalls = new Map(); // Store calls to viewers
+        let currentMode = null; // 'create' or 'join'
+        let myRoomId = null;
         let controlsTimeout;
+        let isRoomOwner = false;
 
-        // Initialize peer connection
-        function initializePeer() {
+        // Mode selection
+        function selectMode(mode) {
+            currentMode = mode;
+            
+            // Update UI
+            document.querySelectorAll('.mode-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            if (mode === 'create') {
+                document.getElementById('createRoomOption').classList.add('selected');
+                setTimeout(() => {
+                    modeSelection.classList.add('hidden');
+                    createRoomInterface.classList.remove('hidden');
+                    initializeRoom();
+                }, 300);
+            } else if (mode === 'join') {
+                document.getElementById('joinRoomOption').classList.add('selected');
+                setTimeout(() => {
+                    modeSelection.classList.add('hidden');
+                    joinRoomInterface.classList.remove('hidden');
+                    initializeViewer();
+                }, 300);
+            }
+        }
+
+        function backToModeSelection() {
+            // Cleanup current session
+            if (peer) {
+                peer.destroy();
+                peer = null;
+            }
+            if (myStream) {
+                myStream.getTracks().forEach(track => track.stop());
+                myStream = null;
+            }
+            connections.clear();
+            viewerCalls.clear();
+            currentCall = null;
+            isConnected = false;
+            isRoomOwner = false;
+            myRoomId = null;
+            
+            // Reset video display
+            video.srcObject = null;
+            video.muted = false; // Reset muted state
+            videoOverlay.style.display = 'flex';
+            hideMobileControls();
+            
+            // Show mode selection
+            createRoomInterface.classList.add('hidden');
+            joinRoomInterface.classList.add('hidden');
+            modeSelection.classList.remove('hidden');
+            
+            // Reset selections
+            document.querySelectorAll('.mode-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            currentMode = null;
+        }
+
+        // Initialize room (create mode)
+        function initializeRoom() {
             const simpleId = Math.floor(10000 + Math.random() * 90000).toString();
-
+            myRoomId = simpleId;
+            
             peer = new Peer(simpleId, {
                 config: {
                     iceServers: [
@@ -697,171 +904,164 @@
             });
 
             peer.on('open', id => {
-                console.log('Peer connected with ID:', id);
-                myIdEl.textContent = id;
-                updateStatus('connected', 'Ready to connect');
+                console.log('Room created with ID:', id);
+                roomId.textContent = id;
+                roomLink.textContent = `${window.location.origin}${window.location.pathname}?room=${id}`;
+                updateStatus('connected', 'Room ready - Share your ID or link');
+                isRoomOwner = true;
             });
 
             peer.on('error', err => {
                 console.error('Peer error:', err);
                 if (err.type === 'unavailable-id') {
-                    initializePeer();
+                    initializeRoom();
                     return;
                 }
-                showToast('Connection error: ' + err.message, 'error');
-                updateStatus('disconnected', 'Connection failed');
+                showToast('Room creation error: ' + err.message, 'error');
+                updateStatus('disconnected', 'Room creation failed');
             });
 
-            peer.on('call', call => {
-                console.log('Receiving incoming call');
-                call.answer();
-                currentCall = call;
-
-                call.on('stream', remoteStream => {
-                    console.log('Received remote stream');
-
-                    // Force enable all tracks
-                    remoteStream.getTracks().forEach(track => {
-                        track.enabled = true;
-                    });
-
-                    video.srcObject = remoteStream;
-                    horizontalVideo.srcObject = remoteStream;
-
-                    // Set volume to 100% and unmuted by default
-                    video.volume = 1.0;
-                    video.muted = false;
-                    horizontalVideo.volume = 1.0;
-                    horizontalVideo.muted = false;
-                    volumeSlider.value = 100;
-                    updateMuteButton(1.0);
-
-                    video.play().then(() => {
-                        console.log('Video playback started');
-                        videoOverlay.style.display = 'none';
-                        updateStatus('connected', 'Receiving stream');
-                        isConnected = true;
-                        toggleButtons(true);
-                        showMobileControls();
-                        showToast('Stream connected - Audio enabled!', 'success');
-                    }).catch(e => {
-                        console.error('Video play failed:', e);
-                        showToast('Click video to start playback', 'error');
-                    });
-                });
-
-                call.on('close', () => {
-                    console.log('Call closed');
-                    disconnect();
-                });
-
-                call.on('error', err => {
-                    console.error('Call error:', err);
-                    showToast('Call failed: ' + err.message, 'error');
-                    disconnect();
-                });
-            });
-
+            // Handle incoming connections (viewers joining)
             peer.on('connection', conn => {
-                console.log('Incoming connection');
-                connection = conn;
+                console.log('New viewer joined:', conn.peer);
+                connections.set(conn.peer, conn);
+                updateViewerCount();
+                showToast('New viewer joined the room!', 'success');
 
-                conn.on('open', () => {
-                    console.log('Data connection opened');
-                });
+                // If already streaming, immediately call this viewer
+                if (myStream) {
+                    console.log('Stream already active, calling new viewer:', conn.peer);
+                    setTimeout(() => {
+                        const call = peer.call(conn.peer, myStream);
+                        if (call) {
+                            viewerCalls.set(conn.peer, call);
+                            
+                            call.on('close', () => {
+                                console.log('Call to new viewer closed:', conn.peer);
+                                viewerCalls.delete(conn.peer);
+                            });
+
+                            call.on('error', (err) => {
+                                console.error('Call to new viewer failed:', conn.peer, err);
+                                viewerCalls.delete(conn.peer);
+                            });
+                        }
+                    }, 1000); // Give more time for viewer to be ready
+                }
 
                 conn.on('data', (data) => {
-                    console.log('Received data:', data);
-                    if (data.type === 'stream_starting') {
-                        updateStatus('connecting', 'Stream starting...');
-                        showToast('Receiving stream...', 'success');
-                    }
+                    console.log('Received data from viewer:', conn.peer, data);
                 });
 
                 conn.on('close', () => {
-                    if (isConnected) disconnect();
+                    console.log('Viewer left:', conn.peer);
+                    connections.delete(conn.peer);
+                    if (viewerCalls.has(conn.peer)) {
+                        viewerCalls.get(conn.peer).close();
+                        viewerCalls.delete(conn.peer);
+                    }
+                    updateViewerCount();
+                    showToast('A viewer left the room', 'success');
                 });
+
+                conn.on('error', err => {
+                    console.error('Connection error:', err);
+                    connections.delete(conn.peer);
+                    if (viewerCalls.has(conn.peer)) {
+                        viewerCalls.delete(conn.peer);
+                    }
+                    updateViewerCount();
+                });
+            });
+
+            // Handle incoming calls - This should NOT happen in room mode for room owner
+            // Room owner calls viewers, not the other way around
+            peer.on('call', call => {
+                console.log('Unexpected incoming call from:', call.peer);
+                // Just close it since room owner initiates calls
+                call.close();
             });
         }
 
-        // Update status
+        // Initialize viewer (join mode)
+        function initializeViewer() {
+            const simpleId = Math.floor(10000 + Math.random() * 90000).toString();
+            
+            peer = new Peer(simpleId, {
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:global.stun.twilio.com:3478' }
+                    ]
+                }
+            });
+
+            peer.on('open', id => {
+                console.log('Viewer connected with ID:', id);
+                updateJoinStatus('connected', 'Ready to join a room');
+            });
+
+            peer.on('error', err => {
+                console.error('Peer error:', err);
+                if (err.type === 'unavailable-id') {
+                    initializeViewer();
+                    return;
+                }
+                showToast('Connection error: ' + err.message, 'error');
+                updateJoinStatus('disconnected', 'Connection failed');
+            });
+        }
+
+        // Update status (for room creation)
         function updateStatus(type, message) {
-            statusEl.className = `status-indicator status-${type}`;
+            status.className = `status-indicator status-${type}`;
             statusText.textContent = message;
             statusDot.textContent = type === 'connecting' ? '🟡' : type === 'connected' ? '🟢' : '🔴';
         }
 
-        // Show toast
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.textContent = message;
-            document.body.appendChild(toast);
-
-            setTimeout(() => toast.classList.add('show'), 100);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => document.body.removeChild(toast), 400);
-            }, 3000);
+        // Update join status (for room joining)
+        function updateJoinStatus(type, message) {
+            joinStatus.className = `status-indicator status-${type}`;
+            joinStatusText.textContent = message;
+            joinStatusDot.textContent = type === 'connecting' ? '🟡' : type === 'connected' ? '🟢' : '🔴';
         }
 
-        // Toggle buttons
-        function toggleButtons(connected) {
-            connectBtn.style.display = connected ? 'none' : 'block';
-            shareBtn.style.display = connected ? 'none' : 'block';
-            disconnectBtn.style.display = connected ? 'block' : 'none';
-            peerIdInput.disabled = connected;
+        // Update viewer count
+        function updateViewerCount() {
+            const count = connections.size;
+            viewerNumber.textContent = count;
         }
 
-        // Copy ID
-        async function copyId() {
+        // Copy room ID
+        async function copyRoomId() {
             try {
-                await navigator.clipboard.writeText(myIdEl.textContent);
-                showToast('ID copied to clipboard!', 'success');
-                document.getElementById('copyBtn').textContent = '✅ Copied!';
+                await navigator.clipboard.writeText(roomId.textContent);
+                showToast('Room ID copied to clipboard!', 'success');
+                event.target.textContent = '✅ Copied!';
                 setTimeout(() => {
-                    document.getElementById('copyBtn').textContent = '📋 Copy ID';
+                    event.target.textContent = '📋 Copy ID';
                 }, 2000);
             } catch (err) {
-                showToast('Failed to copy ID', 'error');
+                // showToast('Failed to copy Room ID', 'error');
             }
         }
 
-        // Connect as viewer
-        connectBtn.onclick = () => {
-            const peerId = peerIdInput.value.trim();
-            if (!peerId) {
-                showToast('Please enter a connection ID', 'error');
-                return;
+        // Copy room link
+        async function copyRoomLink() {
+            try {
+                await navigator.clipboard.writeText(roomLink.textContent);
+                showToast('Room link copied to clipboard!', 'success');
+                event.target.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    event.target.textContent = '🔗 Copy Link';
+                }, 2000);
+            } catch (err) {
+                // showToast('Failed to copy room link', 'error');
             }
+        }
 
-            updateStatus('connecting', 'Connecting...');
-            connection = peer.connect(peerId);
-
-            connection.on('open', () => {
-                console.log('Connected as viewer');
-                connection.send({ type: 'viewer_ready' });
-                showToast('Connected! Ready to receive stream...', 'success');
-                updateStatus('connected', 'Connected - Ready for stream');
-                isConnected = true;
-                toggleButtons(true);
-            });
-
-            connection.on('error', err => {
-                console.error('Connection error:', err);
-                showToast('Failed to connect: ' + err.message, 'error');
-                updateStatus('disconnected', 'Connection failed');
-            });
-        };
-
-        // Start sharing
-        shareBtn.onclick = async () => {
-            const peerId = peerIdInput.value.trim();
-            if (!peerId) {
-                showToast('Please enter a connection ID', 'error');
-                return;
-            }
-
+        // Start screen sharing (room owner)
+        startSharingBtn.onclick = async () => {
             try {
                 updateStatus('connecting', 'Starting screen capture...');
 
@@ -881,41 +1081,62 @@
 
                 myStream = await navigator.mediaDevices.getDisplayMedia(constraints);
 
-                if (!connection) {
-                    connection = peer.connect(peerId);
-                    await new Promise((resolve, reject) => {
-                        const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
-                        connection.on('open', () => {
-                            clearTimeout(timeout);
-                            resolve();
-                        });
-                        connection.on('error', reject);
-                    });
-                }
-
-                connection.send({ type: 'stream_starting' });
-
-                const call = peer.call(peerId, myStream);
-                currentCall = call;
-
+                // Show local preview for room owner (muted to prevent feedback)
                 video.srcObject = myStream;
-                video.muted = true; // Prevent feedback for sharer
+                video.muted = true; // Prevent audio feedback for sharer
                 videoOverlay.style.display = 'none';
-                video.play();
+                video.play().then(() => {
+                    console.log('Local preview started for room owner');
+                    showToast('Screen sharing started - You can see your preview!', 'success');
+                }).catch(e => {
+                    console.error('Local preview failed:', e);
+                });
 
-                updateStatus('connected', 'Sharing screen');
-                isConnected = true;
-                toggleButtons(true);
+                updateStatus('connected', 'Sharing screen to ' + connections.size + ' viewers');
+                startSharingBtn.classList.add('hidden');
+                stopSharingBtn.classList.remove('hidden');
                 showMobileControls();
                 showToast('Screen sharing started!', 'success');
 
-                call.on('close', () => {
-                    disconnect();
-                    showToast('Viewer disconnected', 'error');
+                // Call each connected viewer with the stream
+                console.log('Broadcasting to', connections.size, 'connected viewers');
+                connections.forEach((conn, peerId) => {
+                    if (conn.open) {
+                        console.log('Calling viewer:', peerId, 'with stream');
+                        
+                        // Give a small delay to ensure connection is stable
+                        setTimeout(() => {
+                            const call = peer.call(peerId, myStream);
+                            if (call) {
+                                viewerCalls.set(peerId, call);
+                                console.log('Call initiated to viewer:', peerId);
+                                
+                                call.on('close', () => {
+                                    console.log('Call to viewer closed:', peerId);
+                                    viewerCalls.delete(peerId);
+                                });
+
+                                call.on('error', (err) => {
+                                    console.error('Call to viewer failed:', peerId, err);
+                                    viewerCalls.delete(peerId);
+                                    showToast(`Failed to stream to viewer ${peerId}`, 'error');
+                                });
+                            } else {
+                                console.error('Failed to create call to viewer:', peerId);
+                            }
+                        }, 500); // 500ms delay
+                    } else {
+                        console.log('Connection to viewer not open:', peerId);
+                    }
                 });
 
+                if (connections.size === 0) {
+                    showToast('No viewers connected yet. Share your room ID!', 'success');
+                }
+
+                // Handle screen share ending
                 myStream.getVideoTracks()[0].addEventListener('ended', () => {
-                    disconnect();
+                    stopScreenSharing();
                     showToast('Screen sharing stopped', 'success');
                 });
 
@@ -926,48 +1147,196 @@
                     errorMessage = 'Screen sharing permission denied';
                 }
                 showToast(errorMessage, 'error');
-                updateStatus('disconnected', 'Sharing failed');
+                updateStatus('connected', 'Room ready - Share your ID or link');
             }
         };
 
-        // Disconnect
-        function disconnect() {
-            if (currentCall) {
-                currentCall.close();
-                currentCall = null;
-            }
-            if (connection) {
-                connection.close();
-                connection = null;
-            }
+        // Stop screen sharing
+        function stopScreenSharing() {
             if (myStream) {
                 myStream.getTracks().forEach(track => track.stop());
                 myStream = null;
             }
 
-            video.srcObject = null;
-            horizontalVideo.srcObject = null;
-            videoOverlay.style.display = 'flex';
-            updateStatus('connected', 'Ready to connect');
-            isConnected = false;
-            toggleButtons(false);
-            hideMobileControls();
+            // Close all viewer calls
+            viewerCalls.forEach((call, peerId) => {
+                call.close();
+            });
+            viewerCalls.clear();
 
-            if (isHorizontalActive) {
-                toggleHorizontal();
-            }
+            // Reset video display for room owner
+            video.srcObject = null;
+            video.muted = false; // Reset muted state
+            videoOverlay.style.display = 'flex';
+            updateStatus('connected', 'Room ready - Share your ID or link');
+            startSharingBtn.classList.remove('hidden');
+            stopSharingBtn.classList.add('hidden');
+            hideMobileControls();
         }
 
-        disconnectBtn.onclick = () => {
-            disconnect();
-            showToast('Disconnected successfully', 'success');
+        stopSharingBtn.onclick = () => {
+            stopScreenSharing();
+            showToast('Screen sharing stopped', 'success');
         };
+
+        // Join room (viewer)
+        joinRoomBtn.onclick = () => {
+            const targetRoomId = roomIdInput.value.trim();
+            if (!targetRoomId) {
+                showToast('Please enter a room ID', 'error');
+                return;
+            }
+
+            updateJoinStatus('connecting', 'Joining room...');
+
+            // Connect to room owner
+            const connection = peer.connect(targetRoomId);
+
+            connection.on('open', () => {
+                console.log('Connected to room:', targetRoomId);
+                updateJoinStatus('connected', 'Connected - Waiting for stream');
+                isConnected = true;
+                joinRoomBtn.classList.add('hidden');
+                leaveRoomBtn.classList.remove('hidden');
+                roomIdInput.disabled = true;
+                
+                // Immediately call the room owner to establish stream connection
+                console.log('Calling room owner to receive stream...');
+                peer.on('call', call => {
+                    console.log('Incoming stream call from room owner');
+                    currentCall = call;
+
+                    call.answer(); // Answer without sending stream
+
+                    call.on('stream', remoteStream => {
+                        console.log('Received remote stream');
+                        video.srcObject = remoteStream;
+                        video.volume = 1.0;
+                        video.muted = false;
+                        videoOverlay.style.display = 'none';
+                        showMobileControls();
+                    });
+
+                    call.on('close', () => {
+                        video.srcObject = null;
+                        videoOverlay.style.display = 'flex';
+                    });
+
+                    call.on('error', err => {
+                        console.error('Call error:', err);
+                    });
+                });
+
+                call.on('stream', remoteStream => {
+                    console.log('Received remote stream from room owner');
+                    
+                    // Check if stream has active tracks
+                    const videoTracks = remoteStream.getVideoTracks();
+                    const audioTracks = remoteStream.getAudioTracks();
+                    
+                    if (videoTracks.length > 0 || audioTracks.length > 0) {
+                        console.log('Stream has active tracks, displaying video');
+                        
+                        // Force enable all tracks
+                        remoteStream.getTracks().forEach(track => {
+                            track.enabled = true;
+                        });
+
+                        video.srcObject = remoteStream;
+
+                        // Set volume to 100% and unmuted by default
+                        video.volume = 1.0;
+                        video.muted = false;
+                        volumeSlider.value = 100;
+                        updateMuteButton(1.0);
+
+                        video.play().then(() => {
+                            console.log('Video playback started');
+                            videoOverlay.style.display = 'none';
+                            updateJoinStatus('connected', 'Receiving stream');
+                            showMobileControls();
+                            showToast('Stream connected - Audio enabled!', 'success');
+                        }).catch(e => {
+                            console.error('Video play failed:', e);
+                            showToast('Click video to start playback', 'error');
+                        });
+                    } else {
+                        console.log('Empty stream received, waiting for actual stream...');
+                        showToast('Connected to room! Waiting for stream to start...', 'success');
+                    }
+                });
+
+                call.on('close', () => {
+                    console.log('Stream call closed');
+                    video.srcObject = null;
+                    videoOverlay.style.display = 'flex';
+                    updateJoinStatus('connected', 'Stream ended');
+                    hideMobileControls();
+                    showToast('Stream ended', 'success');
+                });
+
+                call.on('error', err => {
+                    console.error('Call error:', err);
+                    showToast('Failed to receive stream: ' + err.message, 'error');
+                });
+                
+                // Send ready message to room owner
+                connection.send({ type: 'viewer_ready' });
+            });
+
+            connection.on('close', () => {
+                console.log('Connection to room owner closed');
+                leaveRoom();
+            });
+
+            connection.on('error', err => {
+                console.error('Connection error:', err);
+                showToast('Failed to join room: Room not found or full', 'error');
+                updateJoinStatus('connected', 'Ready to join a room');
+            });
+        };
+
+        // Leave room (viewer)
+        function leaveRoom() {
+            if (currentCall) {
+                currentCall.close();
+                currentCall = null;
+            }
+
+            video.srcObject = null;
+            videoOverlay.style.display = 'flex';
+            updateJoinStatus('connected', 'Ready to join a room');
+            isConnected = false;
+            joinRoomBtn.classList.remove('hidden');
+            leaveRoomBtn.classList.add('hidden');
+            roomIdInput.disabled = false;
+            roomIdInput.value = '';
+            hideMobileControls();
+        }
+
+        leaveRoomBtn.onclick = () => {
+            leaveRoom();
+            showToast('Left the room successfully', 'success');
+        };
+
+        // Show toast
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => document.body.removeChild(toast), 400);
+            }, 3000);
+        }
 
         // Volume controls
         volumeSlider.oninput = () => {
             const volume = volumeSlider.value / 100;
             video.volume = volume;
-            horizontalVideo.volume = volume;
             updateMuteButton(volume);
         };
 
@@ -982,14 +1351,13 @@
         function toggleMute() {
             const isMuted = !video.muted;
             video.muted = isMuted;
-            horizontalVideo.muted = isMuted;
             updateMuteButton(video.volume);
             showToast(isMuted ? 'Audio muted' : 'Audio unmuted', 'success');
         }
 
         // Fullscreen
         function toggleFullscreen() {
-            const element = isHorizontalActive ? horizontalMode : document.querySelector('.video-wrapper');
+            const element = document.querySelector('.video-wrapper');
 
             if (!document.fullscreenElement) {
                 element.requestFullscreen().then(() => {
@@ -1004,38 +1372,10 @@
             }
         }
 
-        // Horizontal mode
-        function toggleHorizontal() {
-            if (!isConnected) {
-                showToast('No active stream', 'error');
-                return;
-            }
-
-            isHorizontalActive = !isHorizontalActive;
-
-            if (isHorizontalActive) {
-                horizontalMode.classList.add('active');
-                horizontalVideo.play();
-                document.getElementById('horizontalBtn').classList.add('active');
-                showToast('Horizontal mode enabled', 'success');
-
-                // Hide mobile controls in horizontal mode for clean view
-                mobileControls.style.display = 'none';
-            } else {
-                horizontalMode.classList.remove('active');
-                document.getElementById('horizontalBtn').classList.remove('active');
-                showToast('Horizontal mode disabled', 'success');
-
-                // Show mobile controls again
-                showMobileControls();
-            }
-        }
-
         // Mobile controls visibility
         function showMobileControls() {
-            if (window.innerWidth <= 768 && isConnected && !isHorizontalActive) {
+            if (window.innerWidth <= 768 && (isConnected || myStream)) {
                 mobileControls.style.display = 'flex';
-                // Auto-hide after 3 seconds
                 clearTimeout(controlsTimeout);
                 mobileControls.classList.add('show');
                 controlsTimeout = setTimeout(() => {
@@ -1052,13 +1392,13 @@
         // Show controls on video interaction
         const videoWrapper = document.getElementById('videoWrapper');
         videoWrapper.addEventListener('click', () => {
-            if (isConnected && !isHorizontalActive) {
+            if (isConnected || myStream) {
                 showMobileControls();
             }
         });
 
         videoWrapper.addEventListener('touchstart', () => {
-            if (isConnected && !isHorizontalActive) {
+            if (isConnected || myStream) {
                 showMobileControls();
             }
         });
@@ -1066,7 +1406,7 @@
         // Handle orientation changes
         function handleOrientationChange() {
             setTimeout(() => {
-                if (isConnected && window.innerWidth <= 768) {
+                if ((isConnected || myStream) && window.innerWidth <= 768) {
                     showMobileControls();
                 } else if (window.innerWidth > 768) {
                     hideMobileControls();
@@ -1085,10 +1425,10 @@
                 toggleMute();
             }
             if (e.key === 'Escape') {
-                if (isHorizontalActive) {
-                    toggleHorizontal();
-                } else if (isConnected) {
-                    disconnect();
+                if (currentMode === 'create' && myStream) {
+                    stopScreenSharing();
+                } else if (currentMode === 'join' && isConnected) {
+                    leaveRoom();
                 }
             }
         });
@@ -1104,15 +1444,31 @@
             }
         });
 
+        // Check for room parameter in URL
+        function checkUrlForRoom() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomParam = urlParams.get('room');
+            if (roomParam && roomParam.length === 5) {
+                // Auto-select join mode and fill room ID
+                selectMode('join');
+                setTimeout(() => {
+                    roomIdInput.value = roomParam;
+                    showToast('Room ID loaded from link!', 'success');
+                }, 500);
+            }
+        }
+
         // Initialize on page load
         window.addEventListener('load', () => {
-            console.log('Initializing ShareScreen Pro');
-            initializePeer();
-
+            console.log('Initializing ShareScreen with Room System');
+            
             // Set initial volume to 100%
             video.volume = 1.0;
             volumeSlider.value = 100;
             updateMuteButton(1.0);
+
+            // Check for room in URL
+            checkUrlForRoom();
 
             // Handle orientation changes
             window.addEventListener('orientationchange', handleOrientationChange);
@@ -1129,16 +1485,19 @@
 
         window.addEventListener('offline', () => {
             showToast('Connection lost', 'error');
-            updateStatus('disconnected', 'No internet connection');
+            if (currentMode === 'create') {
+                updateStatus('disconnected', 'No internet connection');
+            } else if (currentMode === 'join') {
+                updateJoinStatus('disconnected', 'No internet connection');
+            }
         });
 
         // Prevent zoom on iOS
         document.addEventListener('touchmove', function (event) {
             if (event.scale && event.scale !== 1) {
-                event.preventDefault(); // block pinch zoom only
+                event.preventDefault();
             }
         }, { passive: false });
-
 
         // Handle double-tap zoom prevention
         let lastTouchEnd = 0;
